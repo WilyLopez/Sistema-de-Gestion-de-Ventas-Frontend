@@ -1,0 +1,58 @@
+/* Variables CSS personalizadas adicionales */
+:root {
+    /* Espaciado */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+
+    /* Bordes */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-full: 9999px;
+
+    /* Sombras */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+
+    /* Duraciones de transición */
+    --duration-fast: 150ms;
+    --duration-normal: 300ms;
+    --duration-slow: 500ms;
+}
+
+/* Estilos globales adicionales */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevenir selección en elementos UI */
+button,
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Transiciones suaves globales */
+* {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: var(--duration-fast);
+    transition-timing-function: ease-in-out;
+}
+
+/* Print styles */
+@media print {
+    body {
+        @apply bg-white text-black;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+}
