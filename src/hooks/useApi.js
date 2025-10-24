@@ -1,33 +1,47 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { getErrorMessage } from "@utils/errorHandler";
 
-export const useApi = (apiFunc, immediate = true) => {
+// Hook genérico para manejar llamadas a la API
+export const useApi = (apiFunction) => {
     const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(immediate);
     const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const execute = async (...params) => {
-        setLoading(true);
+    // Ejecutar la función de API
+    const execute = useCallback(
+        async (...params) => {
+            try {
+                setIsLoading(true);
+                setError(null);
+
+                const response = await apiFunction(...params);
+                setData(response);
+
+                return { success: true, data: response };
+            } catch (err) {
+                const errorMessage = getErrorMessage(err);
+                setError(errorMessage);
+
+                return { success: false, error: errorMessage };
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [apiFunction]
+    );
+
+    // Resetear estado
+    const reset = useCallback(() => {
+        setData(null);
         setError(null);
-
-        try {
-            const response = await apiFunc(...params);
-            setData(response.data);
-            return response.data;
-        } catch (err) {
-            const errorMessage =
-                err.response?.data?.mensaje || "Error en la petición";
-            setError(errorMessage);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (immediate) {
-            execute();
-        }
+        setIsLoading(false);
     }, []);
 
-    return { data, loading, error, execute, setData };
+    return {
+        data,
+        error,
+        isLoading,
+        execute,
+        reset,
+    };
 };
