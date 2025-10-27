@@ -1,33 +1,12 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthProvider";
-import { useAuth } from "./hooks/useAuth";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+// src/App.jsx
+import AppRoutes from '@router/index';
 
-function PrivateRoute({ children }) {
-    const { isAuthenticated } = useAuth();
-    return isAuthenticated ? children : <Navigate to="/login" />;
-}
-
+/**
+ * Componente principal de la aplicación
+ * Solo renderiza el router - toda la lógica de rutas está en AppRoutes
+ */
 function App() {
-    return (
-        <BrowserRouter>
-            <AuthProvider>
-                <Routes>
-                    <Route path="/login" element={<Login />} />
-                    <Route
-                        path="/dashboard"
-                        element={
-                            <PrivateRoute>
-                                <Dashboard />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route path="/" element={<Navigate to="/dashboard" />} />
-                </Routes>
-            </AuthProvider>
-        </BrowserRouter>
-    );
+    return <AppRoutes />;
 }
 
 export default App;

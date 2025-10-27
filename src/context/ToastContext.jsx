@@ -1,4 +1,5 @@
-import { createContext, useContext } from 'react';
+// src/context/ToastContext.jsx
+import { createContext } from 'react';
 import { useToast } from '@hooks/useToast';
 import { ToastContainer } from '@components/alerts/Toast';
 
@@ -19,15 +20,4 @@ export const ToastProvider = ({ children }) => {
     );
 };
 
-/**
- * Hook para usar el contexto de Toast
- */
-export const useToastContext = () => {
-    const context = useContext(ToastContext);
-
-    if (!context) {
-        throw new Error('useToastContext debe ser usado dentro de ToastProvider');
-    }
-
-    return context;
-};
+export { ToastContext };

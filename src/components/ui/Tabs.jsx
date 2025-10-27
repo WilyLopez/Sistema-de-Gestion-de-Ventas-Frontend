@@ -26,11 +26,10 @@ const Tabs = ({ tabs = [], defaultTab = 0, onChange, className = "" }) => {
                                 onClick={() => handleTabChange(index)}
                                 className={`
                   py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                  ${
-                      isActive
-                          ? "border-primary-600 text-primary-600 dark:border-primary-500 dark:text-primary-500"
-                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-dark-muted dark:hover:text-dark-text dark:hover:border-dark-border"
-                  }
+                  ${isActive
+                                        ? "border-primary-600 text-primary-600 dark:border-primary-500 dark:text-primary-500"
+                                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-dark-muted dark:hover:text-dark-text dark:hover:border-dark-border"
+                                    }
                 `}
                                 disabled={tab.disabled}
                             >

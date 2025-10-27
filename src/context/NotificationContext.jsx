@@ -1,8 +1,9 @@
-import { createContext, useState, useEffect, useCallback } from "react";
+import { createContext, useState, useEffect, useCallback, useContext } from "react";
 import { get, del, patch } from "@api/axios.config";
 import ENDPOINTS from "@api/endpoints";
 import { NOTIFICATIONS_CONFIG, NOTIFICATION_TYPES } from "@utils/constants";
 import { useSound } from "@hooks/useSound";
+import { AuthContext } from "./AuthContext"; // Ajusta según tu estructura
 
 // Crear contexto
 const NotificationContext = createContext(null);
@@ -12,15 +13,20 @@ export const NotificationProvider = ({ children }) => {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
+    const [errorCount, setErrorCount] = useState(0); // Contador de errores
     const { playCritical, playNotification } = useSound();
+    const { isAuthenticated } = useContext(AuthContext); // Obtén el estado de autenticación
 
     // Fetch de notificaciones
     const fetchNotifications = useCallback(async () => {
-        if (!NOTIFICATIONS_CONFIG.ENABLED) return;
+        if (!NOTIFICATIONS_CONFIG.ENABLED || !isAuthenticated) {
+            console.log("Notificaciones deshabilitadas o usuario no autenticado");
+            return;
+        }
 
         try {
             setIsLoading(true);
-            const data = await get(ENDPOINTS.ALERTS.BASE);
+            const data = await get(ENDPOINTS.ALERTAS.BASE);
 
             // Ordenar por fecha descendente
             const sortedNotifications = data.sort(
@@ -41,31 +47,43 @@ export const NotificationProvider = ({ children }) => {
             if (criticalUnread.length > 0) {
                 playCritical();
             }
+
+            // Resetear contador de errores tras éxito
+            setErrorCount(0);
         } catch (error) {
             console.error("Error al obtener notificaciones:", error);
+            setErrorCount((prev) => prev + 1);
+            if (error.response?.status === 401) {
+                console.log("Error 401: Deteniendo solicitudes y redirigiendo...");
+                // Opcional: Redirigir al login
+                // window.location.href = '/login';
+            }
         } finally {
             setIsLoading(false);
         }
-    }, [playCritical]);
+    }, [playCritical, isAuthenticated]);
 
-    // Auto-refresh de notificaciones cada X segundos
+    // Auto-refresh de notificaciones
     useEffect(() => {
-        if (!NOTIFICATIONS_CONFIG.ENABLED) return;
+        if (!NOTIFICATIONS_CONFIG.ENABLED || !isAuthenticated || errorCount >= 3) {
+            console.log("Intervalo detenido: notificaciones deshabilitadas, usuario no autenticado o demasiados errores");
+            return;
+        }
 
         fetchNotifications();
 
         const intervalId = setInterval(
             fetchNotifications,
-            NOTIFICATIONS_CONFIG.REFRESH_INTERVAL
+            NOTIFICATIONS_CONFIG.REFRESH_INTERVAL || 30000 // Default a 30 segundos
         );
 
         return () => clearInterval(intervalId);
-    }, [fetchNotifications]);
+    }, [fetchNotifications, isAuthenticated, errorCount]);
 
     // Marcar notificación como leída
     const markAsRead = async (id) => {
         try {
-            await patch(ENDPOINTS.ALERTS.MARK_READ(id));
+            await patch(ENDPOINTS.ALERTAS.MARK_READ(id)); // Cambiado de ALERTS a ALERTAS
 
             setNotifications((prevNotifications) =>
                 prevNotifications.map((notification) =>
@@ -84,7 +102,7 @@ export const NotificationProvider = ({ children }) => {
     // Marcar todas como leídas
     const markAllAsRead = async () => {
         try {
-            await patch(ENDPOINTS.ALERTS.MARK_ALL_READ);
+            await patch(ENDPOINTS.ALERTAS.MARK_ALL_READ); // Cambiado de ALERTS a ALERTAS
 
             setNotifications((prevNotifications) =>
                 prevNotifications.map((notification) => ({
@@ -102,7 +120,7 @@ export const NotificationProvider = ({ children }) => {
     // Eliminar notificación
     const deleteNotification = async (id) => {
         try {
-            await del(ENDPOINTS.ALERTS.DELETE(id));
+            await del(ENDPOINTS.ALERTAS.DELETE(id)); // Cambiado de ALERTS a ALERTAS
 
             const deletedNotification = notifications.find((n) => n.id === id);
 
@@ -124,7 +142,7 @@ export const NotificationProvider = ({ children }) => {
     const deleteMultiple = async (ids) => {
         try {
             await Promise.all(
-                ids.map((id) => del(ENDPOINTS.ALERTS.DELETE(id)))
+                ids.map((id) => del(ENDPOINTS.ALERTAS.DELETE(id))) // Cambiado de ALERTS a ALERTAS
             );
 
             const deletedUnread = notifications.filter(
@@ -195,3 +213,5 @@ export const NotificationProvider = ({ children }) => {
         </NotificationContext.Provider>
     );
 };
+
+export { NotificationContext };

@@ -1,3 +1,4 @@
+//src/components/layout/common/NotificationIcon.jsx
 import { Bell } from 'lucide-react';
 import { useNotifications } from '@hooks/useNotifications';
 import Tooltip from '@components/ui/Tooltip';

@@ -113,3 +113,5 @@ export const SoundProvider = ({ children }) => {
         <SoundContext.Provider value={value}>{children}</SoundContext.Provider>
     );
 };
+
+export { SoundContext };

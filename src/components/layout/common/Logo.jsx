@@ -1,12 +1,10 @@
 import { Link } from 'react-router-dom';
-import { useTheme } from '@hooks/useTheme';
 
 /**
  * Componente Logo
  * Muestra el logo de la aplicación con versión para tema claro y oscuro
  */
 const Logo = ({ className = '', collapsed = false }) => {
-    const { isDark } = useTheme();
 
     return (
         <Link

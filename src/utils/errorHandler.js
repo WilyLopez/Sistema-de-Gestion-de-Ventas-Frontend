@@ -134,3 +134,20 @@ export const logError = (error, context = "") => {
     console.error("Datos:", error.response?.data);
     console.groupEnd();
 };
+
+// Podrías agregar categorías de error
+export const ErrorCategories = {
+    NETWORK: 'network',
+    VALIDATION: 'validation',
+    AUTH: 'auth',
+    BUSINESS: 'business',
+    SYSTEM: 'system'
+};
+
+export const categorizeError = (error) => {
+    if (!error.response) return ErrorCategories.NETWORK;
+    if (error.response.status === 401 || error.response.status === 403) return ErrorCategories.AUTH;
+    if (error.response.status === 400) return ErrorCategories.VALIDATION;
+    if (error.response.status === 409) return ErrorCategories.BUSINESS;
+    return ErrorCategories.SYSTEM;
+};

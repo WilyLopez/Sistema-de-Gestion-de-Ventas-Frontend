@@ -28,6 +28,7 @@ const ConfirmDialog = ({
       icon: AlertTriangle,
       iconColor: 'text-danger',
       confirmVariant: 'danger',
+      requireDoubleClick: true,
     },
     info: {
       icon: Info,

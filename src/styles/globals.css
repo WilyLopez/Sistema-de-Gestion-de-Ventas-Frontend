@@ -24,7 +24,13 @@
     --duration-slow: 500ms;
 }
 
-/* Estilos globales adicionales */
+
+* {
+    transition-duration: var(--duration-fast);
+    transition-property: color, background-color, border-color;
+}
+
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
         "Helvetica Neue", Arial, sans-serif;
@@ -46,10 +52,22 @@ button,
     transition-timing-function: ease-in-out;
 }
 
+/* Mejorar accesibilidad de focus */
+*:focus {
+    outline: 2px solid theme('colors.primary.500');
+    outline-offset: 2px;
+}
+
+/* Prevenir scroll jump en modales */
+.no-scroll {
+    overflow: hidden;
+}
+
 /* Print styles */
 @media print {
     body {
-        @apply bg-white text-black;
+        background-color: white !important;
+        color: black !important;
     }
 
     .no-print {

@@ -184,6 +184,16 @@ export const validateDateRange = (startDate, endDate) => {
     return start <= end;
 };
 
+// Validar que una fecha no sea futura (para ventas, etc.)
+export const validateNotFutureDate = (date) => {
+    if (!date) return true;
+    
+    const inputDate = new Date(date);
+    const today = new Date();
+    
+    return inputDate <= today;
+};
+
 // Validar porcentaje de descuento (0-50%)
 export const validateDiscount = (discount) => {
     const number = parseFloat(discount);

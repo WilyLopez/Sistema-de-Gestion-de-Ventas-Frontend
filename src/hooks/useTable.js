@@ -26,12 +26,21 @@ export const useTable = (
     }, [data, searchTerm]);
 
     // Filtrar datos según filtros específicos
+    // Podrías hacer el filtrado más flexible:
     const filteredByFilters = useMemo(() => {
         let result = filteredData;
 
         Object.entries(filters).forEach(([key, value]) => {
             if (value !== null && value !== undefined && value !== "") {
-                result = result.filter((item) => item[key] === value);
+                result = result.filter((item) => {
+                    const itemValue = item[key];
+                    if (typeof itemValue === "string") {
+                        return itemValue
+                            .toLowerCase()
+                            .includes(value.toLowerCase());
+                    }
+                    return itemValue === value;
+                });
             }
         });
 

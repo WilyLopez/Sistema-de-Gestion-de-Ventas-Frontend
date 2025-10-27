@@ -1,4 +1,6 @@
-import { createContext, useState, useEffect, useCallback } from "react";
+// src/context/AuthContext.jsx
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useState, useEffect, useCallback, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { SESSION } from "@utils/constants";
 import { post } from "@api/axios.config";
@@ -14,11 +16,6 @@ export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
-
-    // Cargar usuario del localStorage al iniciar
-    useEffect(() => {
-        checkAuth();
-    }, [checkAuth]);
 
     // Verificar si hay sesión activa
     const checkAuth = useCallback(() => {
@@ -40,43 +37,10 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
-    // Login
-    const login = async (username, password) => {
-        try {
-            setIsLoading(true);
-
-            const response = await post(ENDPOINTS.AUTH.LOGIN, {
-                username,
-                password,
-            });
-
-            // Extraer token y datos del usuario de la respuesta
-            const { token: authToken, user: userData } = response;
-
-            // Guardar en localStorage
-            localStorage.setItem(SESSION.TOKEN_KEY, authToken);
-            localStorage.setItem(SESSION.USER_KEY, JSON.stringify(userData));
-
-            // Actualizar estado
-            setToken(authToken);
-            setUser(userData);
-            setIsAuthenticated(true);
-
-            // Redirigir según el rol
-            redirectByRole(userData.rol);
-
-            return { success: true };
-        } catch (error) {
-            console.error("Error en login:", error);
-            return {
-                success: false,
-                message:
-                    error.parsedError?.message || "Error al iniciar sesión",
-            };
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // Cargar usuario del localStorage al iniciar
+    useEffect(() => {
+        checkAuth();
+    }, [checkAuth]);
 
     // Logout
     const logout = useCallback(async () => {
@@ -98,6 +62,78 @@ export const AuthProvider = ({ children }) => {
         setToken(null);
         setUser(null);
         setIsAuthenticated(false);
+    };
+
+    // Login
+    const login = async (username, password) => {
+        try {
+            setIsLoading(true);
+
+            const response = await post(ENDPOINTS.AUTH.LOGIN, {
+                username,
+                password,
+            });
+
+            console.log("Respuesta del backend:", response); // ⬅️ DEBUG
+
+            // ✅ SOLUCIÓN: Manejar diferentes estructuras de respuesta
+            let authToken, userData;
+
+            // Opción 1: { token, user }
+            if (response.token && response.user) {
+                authToken = response.token;
+                userData = response.user;
+            }
+            // Opción 2: { token, usuario }
+            else if (response.token && response.usuario) {
+                authToken = response.token;
+                userData = response.usuario;
+            }
+            // Opción 3: { accessToken, user }
+            else if (response.accessToken && response.user) {
+                authToken = response.accessToken;
+                userData = response.user;
+            }
+            // Opción 4: Todo en la raíz { token, id, username, rol, ... }
+            else if (response.token && response.rol) {
+                authToken = response.token;
+                userData = {
+                    id: response.id,
+                    username: response.username,
+                    rol: response.rol,
+                    nombre: response.nombre,
+                    email: response.email,
+                };
+            }
+            // ❌ Si ninguna estructura coincide
+            else {
+                throw new Error("Estructura de respuesta inválida del servidor");
+            }
+
+            // ✅ Validar que userData tenga el campo 'rol'
+            if (!userData.rol) {
+                throw new Error("Los datos del usuario no contienen el rol");
+            }
+
+            localStorage.setItem(SESSION.TOKEN_KEY, authToken);
+            localStorage.setItem(SESSION.USER_KEY, JSON.stringify(userData));
+
+            setToken(authToken);
+            setUser(userData);
+            setIsAuthenticated(true);
+
+            redirectByRole(userData.rol);
+
+            return { success: true };
+        } catch (error) {
+            console.error("Error en login:", error);
+            return {
+                success: false,
+                message: error.message || error.parsedError?.message || "Error al iniciar sesión",
+            };
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     // Redirigir según rol
@@ -147,15 +183,11 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Verificar si el usuario tiene un rol específico
-    const hasRole = (role) => {
-        return user?.rol === role;
-    };
+    const hasRole = (role) => user?.rol === role;
 
     // Verificar si el usuario tiene uno de varios roles
-    const hasAnyRole = (roles) => {
-        if (!Array.isArray(roles)) return false;
-        return roles.includes(user?.rol);
-    };
+    const hasAnyRole = (roles) =>
+        Array.isArray(roles) && roles.includes(user?.rol);
 
     // Session timeout automático
     useEffect(() => {
@@ -172,22 +204,18 @@ export const AuthProvider = ({ children }) => {
         };
 
         const events = ["mousedown", "keydown", "scroll", "touchstart"];
-
-        events.forEach((event) => {
-            document.addEventListener(event, resetTimeout);
-        });
+        events.forEach((event) => document.addEventListener(event, resetTimeout));
 
         resetTimeout();
 
         return () => {
             if (timeoutId) clearTimeout(timeoutId);
-            events.forEach((event) => {
-                document.removeEventListener(event, resetTimeout);
-            });
+            events.forEach((event) =>
+                document.removeEventListener(event, resetTimeout)
+            );
         };
     }, [isAuthenticated, logout]);
 
-    // Valor del contexto
     const value = {
         user,
         token,
@@ -201,7 +229,8 @@ export const AuthProvider = ({ children }) => {
         hasAnyRole,
     };
 
-    return (
-        <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-    );
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export { AuthContext };
+export const useAuth = () => useContext(AuthContext);

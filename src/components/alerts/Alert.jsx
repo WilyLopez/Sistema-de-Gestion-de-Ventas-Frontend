@@ -70,7 +70,7 @@ const Alert = ({
               {title}
             </h3>
           )}
-          
+
           {message && (
             <div className={`text-sm ${config.textColor}`}>
               {message}

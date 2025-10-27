@@ -1,24 +1,17 @@
-/* Importar Tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Reset básico adicional */
 @layer base {
-    * {
-        @apply border-border;
-    }
-
     html {
         @apply scroll-smooth;
     }
 
     body {
-        @apply bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text;
-        @apply transition-colors duration-200;
+        @apply bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text transition-colors duration-200;
     }
 
-    /* Tipografía base */
     h1,
     h2,
     h3,
@@ -28,7 +21,12 @@
         @apply font-semibold;
     }
 
-    /* Focus visible para accesibilidad */
+    input,
+    textarea,
+    select {
+        @apply border-gray-200 dark:border-dark-border;
+    }
+
     :focus-visible {
         @apply outline-2 outline-offset-2 outline-primary-500;
     }
@@ -40,7 +38,6 @@
         text-wrap: balance;
     }
 
-    /* Scrollbar personalizado */
     .custom-scrollbar::-webkit-scrollbar {
         width: 8px;
         height: 8px;

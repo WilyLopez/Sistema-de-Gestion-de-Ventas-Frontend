@@ -12,8 +12,7 @@ const Toast = ({
   title,
   message,
   duration = 5000,
-  onClose,
-  position = 'top-right',
+  onClose
 }) => {
   useEffect(() => {
     if (duration) {

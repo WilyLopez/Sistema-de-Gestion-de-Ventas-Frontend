@@ -1,7 +1,4 @@
-/**
- * Componente Card reutilizable
- * Contenedor con sombra y bordes redondeados
- */
+//src/components/ui/Card.jsx
 const Card = ({
     children,
     title,

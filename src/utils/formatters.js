@@ -91,11 +91,16 @@ export const formatRelativeTime = (date) => {
         const now = new Date();
         const diffInSeconds = Math.floor((now - dateObj) / 1000);
 
-        if (diffInSeconds < 60) return "Hace un momento";
+        // Más opciones para ser más específico
+        if (diffInSeconds < 5) return "Ahora mismo";
+        if (diffInSeconds < 60) return `Hace ${diffInSeconds} segundos`;
+        if (diffInSeconds < 120) return "Hace 1 minuto";
         if (diffInSeconds < 3600)
             return `Hace ${Math.floor(diffInSeconds / 60)} minutos`;
+        if (diffInSeconds < 7200) return "Hace 1 hora";
         if (diffInSeconds < 86400)
             return `Hace ${Math.floor(diffInSeconds / 3600)} horas`;
+        if (diffInSeconds < 172800) return "Ayer";
         if (diffInSeconds < 604800)
             return `Hace ${Math.floor(diffInSeconds / 86400)} días`;
 

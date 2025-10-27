@@ -1,20 +1,40 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, User, Key, Settings, HelpCircle, LogOut } from 'lucide-react';
+import { 
+    User, 
+    Key, 
+    Settings, 
+    Moon, 
+    Sun,
+    HelpCircle, 
+    LogOut,
+    ChevronDown 
+} from 'lucide-react';
 import { useAuth } from '@hooks/useAuth';
-import ConfirmDialog from '@components/alerts/ConfirmDialog';
+import { useTheme } from '@hooks/useTheme';
+import Badge from '@components/ui/Badge';
+
+/**
+ * Mapeo de roles a colores de badge
+ */
+const ROLE_COLORS = {
+    ADMINISTRADOR: 'bg-red-500',
+    VENDEDOR: 'bg-blue-500',
+    EMPLEADO: 'bg-green-500',
+};
 
 /**
  * Componente UserMenu
- * Dropdown con opciones del usuario autenticado
+ * Dropdown con perfil y opciones de usuario
  */
-const UserMenu = ({ className = '' }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-    const menuRef = useRef(null);
+const UserMenu = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
+    const [isOpen, setIsOpen] = useState(false);
+    const menuRef = useRef(null);
 
+    // Cerrar al hacer clic fuera
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -22,13 +42,32 @@ const UserMenu = ({ className = '' }) => {
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [isOpen]);
+
+    // Cerrar con tecla Escape
+    useEffect(() => {
+        const handleEscape = (e) => {
+            if (e.key === 'Escape' && isOpen) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [isOpen]);
 
     const handleLogout = async () => {
-        await logout();
-        setShowLogoutConfirm(false);
+        try {
+            await logout();
+            navigate('/login');
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+        }
     };
 
     const menuItems = [
@@ -44,7 +83,7 @@ const UserMenu = ({ className = '' }) => {
             icon: Key,
             label: 'Cambiar Contraseña',
             onClick: () => {
-                navigate('/cambiar-password');
+                navigate('/cambiar-contrasena');
                 setIsOpen(false);
             },
         },
@@ -52,9 +91,24 @@ const UserMenu = ({ className = '' }) => {
             icon: Settings,
             label: 'Preferencias',
             onClick: () => {
-                navigate('/configuracion');
+                navigate('/preferencias');
                 setIsOpen(false);
             },
+        },
+        {
+            type: 'divider',
+        },
+        {
+            icon: theme === 'dark' ? Sun : Moon,
+            label: theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro',
+            onClick: () => {
+                toggleTheme();
+            },
+            rightContent: (
+                <div className="flex items-center gap-1">
+                    <div className={`w-2 h-2 rounded-full ${theme === 'dark' ? 'bg-blue-500' : 'bg-yellow-500'}`} />
+                </div>
+            ),
         },
         {
             icon: HelpCircle,
@@ -65,97 +119,115 @@ const UserMenu = ({ className = '' }) => {
             },
         },
         {
-            divider: true,
+            type: 'divider',
         },
         {
             icon: LogOut,
             label: 'Cerrar Sesión',
-            onClick: () => {
-                setIsOpen(false);
-                setShowLogoutConfirm(true);
-            },
-            danger: true,
+            onClick: handleLogout,
+            variant: 'danger',
         },
     ];
 
+    if (!user) return null;
+
     return (
-        <>
-            <div ref={menuRef} className={`relative ${className}`}>
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover transition-colors"
-                >
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-600 text-white font-semibold">
-                        {user?.nombre?.charAt(0)}{user?.apellido?.charAt(0)}
+        <div ref={menuRef} className="relative">
+            {/* Botón de usuario */}
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover transition-colors"
+                aria-expanded={isOpen}
+                aria-haspopup="true"
+            >
+                {/* Avatar */}
+                <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-semibold">
+                    {user.nombre?.charAt(0).toUpperCase() || 'U'}
+                </div>
+
+                {/* Información de usuario (oculta en móvil) */}
+                <div className="hidden sm:flex flex-col items-start">
+                    <span className="text-sm font-medium text-gray-900 dark:text-dark-text">
+                        {user.nombre}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-dark-muted">
+                        {user.rol}
+                    </span>
+                </div>
+
+                {/* Chevron */}
+                <ChevronDown className={`
+                    w-4 h-4 text-gray-500 dark:text-dark-muted transition-transform duration-200
+                    ${isOpen ? 'rotate-180' : ''}
+                `} />
+            </button>
+
+            {/* Dropdown */}
+            {isOpen && (
+                <div className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-lg z-50 animate-fade-in">
+                    {/* Header del dropdown */}
+                    <div className="px-4 py-3 border-b border-gray-200 dark:border-dark-border">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white text-base font-semibold">
+                                {user.nombre?.charAt(0).toUpperCase() || 'U'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-gray-900 dark:text-dark-text truncate">
+                                    {user.nombre}
+                                </p>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <Badge
+                                        variant="custom"
+                                        className={`${ROLE_COLORS[user.rol] || 'bg-gray-500'} text-white text-xs px-2 py-0.5`}
+                                    >
+                                        {user.rol}
+                                    </Badge>
+                                </div>
+                            </div>
+                        </div>
+                        {user.email && (
+                            <p className="text-xs text-gray-500 dark:text-dark-muted mt-2 truncate">
+                                {user.email}
+                            </p>
+                        )}
                     </div>
 
-                    <div className="hidden md:block text-left">
-                        <div className="text-sm font-medium text-gray-900 dark:text-dark-text">
-                            {user?.nombre} {user?.apellido}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-dark-muted">
-                            {user?.rol}
-                        </div>
-                    </div>
-
-                    <ChevronDown
-                        className={`w-4 h-4 text-gray-500 dark:text-dark-muted transition-transform ${isOpen ? 'rotate-180' : ''
-                            }`}
-                    />
-                </button>
-
-                {isOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-dark-card rounded-lg shadow-xl border border-gray-200 dark:border-dark-border py-2 z-50 animate-scale-in">
-                        <div className="px-4 py-3 border-b border-gray-200 dark:border-dark-border">
-                            <div className="text-sm font-medium text-gray-900 dark:text-dark-text">
-                                {user?.nombre} {user?.apellido}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-dark-muted">
-                                {user?.email}
-                            </div>
-                        </div>
-
+                    {/* Opciones del menú */}
+                    <div className="py-2">
                         {menuItems.map((item, index) => {
-                            if (item.divider) {
+                            if (item.type === 'divider') {
                                 return (
                                     <div
-                                        key={index}
-                                        className="my-2 border-t border-gray-200 dark:border-dark-border"
+                                        key={`divider-${index}`}
+                                        className="my-1 border-t border-gray-200 dark:border-dark-border"
                                     />
                                 );
                             }
 
-                            const Icon = item.icon;
+                            const IconComponent = item.icon;
 
                             return (
                                 <button
-                                    key={index}
+                                    key={item.label}
                                     onClick={item.onClick}
-                                    className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors ${item.danger
-                                            ? 'text-danger hover:bg-red-50 dark:hover:bg-red-900/10'
+                                    className={`
+                                        w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors
+                                        ${item.variant === 'danger'
+                                            ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10'
                                             : 'text-gray-700 dark:text-dark-text hover:bg-gray-50 dark:hover:bg-dark-hover'
-                                        }`}
+                                        }
+                                    `}
                                 >
-                                    <Icon className="w-4 h-4" />
-                                    <span>{item.label}</span>
+                                    <IconComponent className="w-5 h-5 flex-shrink-0" />
+                                    <span className="flex-1 text-left">{item.label}</span>
+                                    {item.rightContent}
                                 </button>
                             );
                         })}
                     </div>
-                )}
-            </div>
-
-            <ConfirmDialog
-                isOpen={showLogoutConfirm}
-                onClose={() => setShowLogoutConfirm(false)}
-                onConfirm={handleLogout}
-                title="¿Cerrar sesión?"
-                message="¿Está seguro que desea salir del sistema?"
-                confirmText="Cerrar sesión"
-                cancelText="Cancelar"
-                type="question"
-            />
-        </>
+                </div>
+            )}
+        </div>
     );
 };
 
