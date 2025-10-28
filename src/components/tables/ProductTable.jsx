@@ -156,9 +156,9 @@ const ProductTable = ({ onDelete }) => {
     ];
 
     // Función para obtener datos con paginación
-    const fetchData = async (page, size, sort) => {
+    const fetchData = async (page, size, sort, searchQuery = '') => {
         try {
-            const response = await productService.getAll(page, size, sort);
+            const response = await productService.getAll(page, size, sort, searchQuery);
             return response;
         } catch (error) {
             console.error('Error al cargar productos:', error);

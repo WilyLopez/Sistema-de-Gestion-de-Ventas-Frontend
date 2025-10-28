@@ -9,7 +9,7 @@ const AdminFooter = () => {
                     © {currentYear} SGVIA - Sistema de Gestión de Ventas e Inventario
                 </p>
                 <p>
-                    Versión {version} • Desarrollado con ❤️
+                    Versión {version} • Desarrollado con noches de desvelo
                 </p>
             </div>
         </footer>

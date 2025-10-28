@@ -1,5 +1,5 @@
 // src/components/tables/BaseTable
-import { useState, useEffect,useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     ChevronUp,
     ChevronDown,
@@ -48,7 +48,7 @@ const BaseTable = ({
         setError(null);
         try {
             const sort = sortField ? `${sortField},${sortDirection}` : null;
-            const response = await fetchData(currentPage, pageSize, sort);
+            const response = await fetchData(currentPage, pageSize, sort, searchQuery); // <-- agrega aquí
             setData(response.content || []);
             setTotalElements(response.totalElements || 0);
             setTotalPages(response.totalPages || 0);
@@ -58,7 +58,8 @@ const BaseTable = ({
         } finally {
             setIsLoading(false);
         }
-    }, [currentPage, pageSize, sortField, sortDirection, fetchData]);
+    }, [currentPage, pageSize, sortField, sortDirection, fetchData, searchQuery]); 
+
 
 
     useEffect(() => {
@@ -72,12 +73,13 @@ const BaseTable = ({
         setSelectAll(false);
     };
 
-    const handlePageSizeChange = (e) => {
-        setPageSize(Number(e.target.value));
+    const handlePageSizeChange = (value) => {
+        setPageSize(Number(value));
         setCurrentPage(0);
         setSelectedRows([]);
         setSelectAll(false);
     };
+
 
     const handleSort = (field) => {
         if (sortField === field) {

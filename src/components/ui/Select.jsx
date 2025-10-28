@@ -31,7 +31,7 @@ const Select = forwardRef(
         const widthClass = fullWidth ? "w-full" : "";
 
         const handleChange = (e) => {
-            const selectedValue = e.target.value;
+            const selectedValue = e?.target?.value ?? e;
             console.log('Select onChange - valor seleccionado:', selectedValue);
             if (onChange) {
                 onChange(selectedValue);

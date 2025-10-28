@@ -29,13 +29,16 @@ const ProductForm = ({ initialData = null, onSubmit, onCancel, isLoading = false
         descripcion: '',
         imagenUrl: '',
         idCategoria: '',
+        idProveedor: '', // ✅ Agregar campo proveedor
         ...initialData,
     });
 
     const [errors, setErrors] = useState({});
     const [categories, setCategories] = useState([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
-    const [loadingCodigo, setLoadingCodigo] = useState(!isEditMode); // ✅ Solo generar en creación
+    const [providers, setProviders] = useState([]); // ✅ Estado para proveedores
+    const [loadingProviders, setLoadingProviders] = useState(true); // ✅ Loading proveedores
+    const [loadingCodigo, setLoadingCodigo] = useState(!isEditMode);
 
     // Cargar categorías
     useEffect(() => {
@@ -43,7 +46,7 @@ const ProductForm = ({ initialData = null, onSubmit, onCancel, isLoading = false
             try {
                 const response = await categoryService.getAll();
                 console.log('Respuesta de categorías:', response);
-                
+
                 if (Array.isArray(response)) {
                     setCategories(response);
                 } else if (response?.content && Array.isArray(response.content)) {
@@ -65,6 +68,36 @@ const ProductForm = ({ initialData = null, onSubmit, onCancel, isLoading = false
         loadCategories();
     }, []);
 
+    // ✅ Cargar proveedores
+    useEffect(() => {
+        const loadProviders = async () => {
+            try {
+                // Importar dinámicamente el servicio
+                const providerService = (await import('@services/ProveedorService')).default;
+                const response = await providerService.getAll();
+                console.log('Respuesta de proveedores:', response);
+
+                if (Array.isArray(response)) {
+                    setProviders(response);
+                } else if (response?.content && Array.isArray(response.content)) {
+                    setProviders(response.content);
+                } else if (response?.data && Array.isArray(response.data)) {
+                    setProviders(response.data);
+                } else {
+                    console.error('Formato de respuesta inesperado:', response);
+                    setProviders([]);
+                }
+            } catch (error) {
+                console.error('Error al cargar proveedores:', error);
+                setProviders([]);
+            } finally {
+                setLoadingProviders(false);
+            }
+        };
+
+        loadProviders();
+    }, []);
+
     // ✅ Generar código automáticamente solo en creación
     useEffect(() => {
         const generarCodigo = async () => {
@@ -72,24 +105,24 @@ const ProductForm = ({ initialData = null, onSubmit, onCancel, isLoading = false
 
             try {
                 setLoadingCodigo(true);
-                
+
                 // Opción 1: Si tu backend tiene endpoint para siguiente código
                 const siguienteCodigo = await productService.getNextCode();
                 setFormData(prev => ({ ...prev, codigo: siguienteCodigo }));
-                
+
                 // Opción 2 (fallback): Generar localmente si no hay endpoint
                 // const ultimoCodigo = await productService.getLastCode();
                 // const numero = parseInt(ultimoCodigo.replace('PROD', '')) + 1;
                 // const nuevoCodigo = `PROD${String(numero).padStart(3, '0')}`;
                 // setFormData(prev => ({ ...prev, codigo: nuevoCodigo }));
-                
+
             } catch (error) {
                 console.error('Error al generar código:', error);
                 // Fallback: generar código basado en timestamp
                 const timestamp = Date.now().toString().slice(-6);
-                setFormData(prev => ({ 
-                    ...prev, 
-                    codigo: `PROD${timestamp}` 
+                setFormData(prev => ({
+                    ...prev,
+                    codigo: `PROD${timestamp}`
                 }));
             } finally {
                 setLoadingCodigo(false);
@@ -216,7 +249,7 @@ const ProductForm = ({ initialData = null, onSubmit, onCancel, isLoading = false
             descripcion: formData.descripcion?.trim() || null,
             imagenUrl: formData.imagenUrl?.trim() || null,
             idCategoria: parseInt(formData.idCategoria),
-            idProveedor: null, // Opcional por ahora
+            idProveedor: formData.idProveedor ? parseInt(formData.idProveedor) : null, // ✅ Opcional
         };
 
         console.log('Datos preparados para enviar:', productData);
@@ -341,6 +374,20 @@ const ProductForm = ({ initialData = null, onSubmit, onCancel, isLoading = false
                     required
                     disabled={isLoading || loadingCategories}
                     placeholder={loadingCategories ? 'Cargando...' : 'Seleccionar categoría'}
+                    fullWidth
+                />
+
+                {/* ✅ Proveedor (Opcional) */}
+                <Select
+                    label="Proveedor"
+                    value={formData.idProveedor}
+                    onChange={(value) => handleSelectChange('idProveedor', value)}
+                    options={providers.map(prov => ({
+                        value: prov.idProveedor || prov.id,
+                        label: prov.razonSocial || prov.nombre,
+                    }))}
+                    disabled={isLoading || loadingProviders}
+                    placeholder={loadingProviders ? 'Cargando...' : 'Seleccionar proveedor'}
                     fullWidth
                 />
 

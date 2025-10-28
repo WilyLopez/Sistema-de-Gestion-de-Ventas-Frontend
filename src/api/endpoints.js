@@ -55,6 +55,9 @@ const ENDPOINTS = {
         BUSCAR: "/api/categorias/buscar",
         TIENE_PRODUCTOS: (id) => `/api/categorias/${id}/tiene-productos`,
         EXISTE_NOMBRE: "/api/categorias/existe-nombre",
+        CON_CANTIDAD: "/api/categorias/con-cantidad",
+        BUSCAR_CON_CANTIDAD: "/api/categorias/buscar/con-cantidad",
+
     },
     PROVEEDORES: {
         BASE: "/api/proveedores",

@@ -3,17 +3,15 @@ import { SESSION } from "@utils/constants";
 import { soundManager } from "@utils/soundManager";
 
 // Crear contexto
-const SoundContext = createContext(null);
+export const SoundContext = createContext(null);
 
 // Provider del contexto
 export const SoundProvider = ({ children }) => {
     const [isMuted, setIsMuted] = useState(false);
     const [volume, setVolumeState] = useState(0.5);
 
-    // Cargar configuración de sonido del localStorage al iniciar
     useEffect(() => {
         const storedMuted = localStorage.getItem(SESSION.SOUND_KEY);
-
         if (storedMuted === "false") {
             setIsMuted(false);
             soundManager.enable();
@@ -23,77 +21,40 @@ export const SoundProvider = ({ children }) => {
         }
     }, []);
 
-    // Reproducir sonido
     const playSound = (soundFile, customVolume = null) => {
         if (isMuted) return;
         soundManager.play(soundFile, customVolume);
     };
+    const playSuccess = () => !isMuted && soundManager.playSuccess();
+    const playError = () => !isMuted && soundManager.playError();
+    const playNotification = () => !isMuted && soundManager.playNotification();
+    const playCritical = () => !isMuted && soundManager.playCritical();
 
-    // Reproducir sonido de éxito
-    const playSuccess = () => {
-        if (isMuted) return;
-        soundManager.playSuccess();
-    };
-
-    // Reproducir sonido de error
-    const playError = () => {
-        if (isMuted) return;
-        soundManager.playError();
-    };
-
-    // Reproducir sonido de notificación
-    const playNotification = () => {
-        if (isMuted) return;
-        soundManager.playNotification();
-    };
-
-    // Reproducir sonido de alerta crítica
-    const playCritical = () => {
-        if (isMuted) return;
-        soundManager.playCritical();
-    };
-
-    // Toggle mute
     const toggleMute = () => {
         const newMutedState = !isMuted;
         setIsMuted(newMutedState);
-
-        if (newMutedState) {
-            soundManager.disable();
-        } else {
-            soundManager.enable();
-        }
-
+        newMutedState ? soundManager.disable() : soundManager.enable();
         localStorage.setItem(SESSION.SOUND_KEY, newMutedState.toString());
     };
-
-    // Mutear sonidos
     const mute = () => {
         setIsMuted(true);
         soundManager.disable();
         localStorage.setItem(SESSION.SOUND_KEY, "true");
     };
-
-    // Desmutear sonidos
     const unmute = () => {
         setIsMuted(false);
         soundManager.enable();
         localStorage.setItem(SESSION.SOUND_KEY, "false");
     };
 
-    // Cambiar volumen
     const setVolume = (newVolume) => {
-        const clampedVolume = Math.max(0, Math.min(1, newVolume));
-        setVolumeState(clampedVolume);
-        soundManager.setVolume(clampedVolume);
+        const clamped = Math.max(0, Math.min(1, newVolume));
+        setVolumeState(clamped);
+        soundManager.setVolume(clamped);
     };
 
-    // Detener todos los sonidos
-    const stopAll = () => {
-        soundManager.stopAll();
-    };
+    const stopAll = () => soundManager.stopAll();
 
-    // Valor del contexto
     const value = {
         isMuted,
         volume,
@@ -109,9 +70,5 @@ export const SoundProvider = ({ children }) => {
         stopAll,
     };
 
-    return (
-        <SoundContext.Provider value={value}>{children}</SoundContext.Provider>
-    );
+    return <SoundContext.Provider value={value}>{children}</SoundContext.Provider>;
 };
-
-export { SoundContext };

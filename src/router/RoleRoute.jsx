@@ -1,45 +1,41 @@
 // src/router/RoleRoute.jsx
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@context/AuthContext';
-import { ROLES } from '@utils/constants';
+import Spinner from '@components/ui/Spinner';
 
-/**
- * Componente que protege rutas según el rol del usuario
- */
 const RoleRoute = ({ children, allowedRoles = [] }) => {
-    const { user, isAuthenticated, loading } = useAuth();
+    const { isAuthenticated, isLoading, user } = useAuth();
 
-    // Mostrar loading mientras se verifica la autenticación
-    if (loading) {
+    const userRole = user?.rol?.toUpperCase();
+    const normalizedAllowedRoles = allowedRoles.map(role => role.toUpperCase());
+
+    console.log(" RoleRoute check:", {
+        isLoading,
+        isAuthenticated,
+        userRole,
+        normalizedAllowedRoles,
+        path: window.location.pathname
+    });
+
+    if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-dark-bg">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
             </div>
         );
     }
 
-    // Si no está autenticado, redirigir a login
     if (!isAuthenticated) {
+        console.log(" No autenticado, redirigiendo a /login");
         return <Navigate to="/login" replace />;
     }
 
-    const userRole = user?.rol?.toUpperCase();
-    const normalizedAllowedRoles = allowedRoles.map(role => role.toUpperCase());
-
-    console.log(' Verificación de rol:', {
-        usuario: user?.nombre,
-        rolOriginal: user?.rol,
-        rolNormalizado: userRole,
-        rolesPermitidos: normalizedAllowedRoles
-    });
-
-    // Si no tiene el rol permitido, redirigir a unauthorized
     if (allowedRoles.length > 0 && !normalizedAllowedRoles.includes(userRole)) {
-        console.warn('Acceso denegado - Rol no autorizado');
+        console.log(" Rol no autorizado:", userRole, "permitidos:", normalizedAllowedRoles);
         return <Navigate to="/unauthorized" replace />;
     }
 
-    // Si todo está bien, mostrar el componente
+    console.log("Acceso permitido a", userRole);
     return children;
 };
 

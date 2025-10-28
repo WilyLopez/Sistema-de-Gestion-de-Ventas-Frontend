@@ -16,6 +16,8 @@ import {
     Settings,
     ChevronDown,
     ChevronRight,
+    AlertTriangle,
+    History,
 } from 'lucide-react';
 
 /**
@@ -49,7 +51,9 @@ const MENU_GROUPS = [
             { icon: Package, label: 'Productos', path: '/admin/productos' },
             { icon: FolderOpen, label: 'Categorías', path: '/admin/categorias' },
             { icon: Truck, label: 'Proveedores', path: '/admin/proveedores' },
-            { icon: Warehouse, label: 'Stock y Alertas', path: '/admin/inventario' },
+            { icon: Warehouse, label: 'Gestión de Stock', path: '/admin/inventario' },
+            { icon: AlertTriangle, label: 'Alertas de Stock', path: '/admin/inventario/alertas' },
+            { icon: History, label: 'Historial', path: '/admin/inventario/historial' },
         ],
     },
     {
@@ -59,6 +63,7 @@ const MENU_GROUPS = [
         collapsible: true,
         items: [
             { icon: ShoppingCart, label: 'Ventas', path: '/admin/ventas' },
+            { icon: FileText, label: 'Reporte de Ventas', path: '/admin/ventas/reportes' },
             { icon: RotateCcw, label: 'Devoluciones', path: '/admin/devoluciones' },
         ],
     },
@@ -68,7 +73,7 @@ const MENU_GROUPS = [
         icon: FileText,
         collapsible: true,
         items: [
-            { icon: FileText, label: 'Reportes', path: '/admin/reportes' },
+            { icon: FileText, label: 'Dashboard Reportes', path: '/admin/reportes' },
             { icon: FileSearch, label: 'Auditoría', path: '/admin/auditoria' },
         ],
     },
@@ -84,7 +89,7 @@ const MENU_GROUPS = [
 ];
 
 const AdminSidebar = ({ isCollapsed }) => {
-    const [openGroups, setOpenGroups] = useState(['dashboard', 'access', 'inventory']);
+    const [openGroups, setOpenGroups] = useState(['dashboard', 'access', 'inventory', 'operations']);
 
     const toggleGroup = (groupId) => {
         setOpenGroups(prev =>
@@ -101,7 +106,7 @@ const AdminSidebar = ({ isCollapsed }) => {
                 bg-white dark:bg-dark-card border-r border-gray-200 dark:border-dark-border
                 transition-all duration-300 ease-in-out z-20
                 ${isCollapsed ? 'w-16' : 'w-64'}
-                overflow-y-auto
+                overflow-y-auto custom-scrollbar
             `}
         >
             <nav className="p-2">

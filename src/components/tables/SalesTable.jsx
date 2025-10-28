@@ -1,8 +1,9 @@
+// src/components/tables/SalesTable.jsx
 import { useNavigate } from 'react-router-dom';
 import { Eye, XCircle, FileText } from 'lucide-react';
 import BaseTable from './BaseTable';
 import Badge from '@components/ui/Badge';
-import saleService from '@services/saleService';
+import saleService from '@services/VentaService';
 import { SALE_STATUS, PAYMENT_METHODS } from '@utils/constants';
 
 /**
@@ -161,7 +162,7 @@ const SalesTable = ({ onCancel, userRole }) => {
     }
 
     // Función para obtener datos con paginación
-    const fetchData = async (page, size, sort, filters) => {
+    const fetchData = async (page, size, sort) => {
         try {
             const response = await saleService.getAll(page, size, sort);
             return response;

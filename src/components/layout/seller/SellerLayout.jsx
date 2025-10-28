@@ -1,4 +1,4 @@
-// 70. src/components/layout/seller/SellerLayout.jsx (corregido)
+// 70. src/components/layout/seller/SellerLayout
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import SellerHeader from './SellerHeader';
