@@ -48,6 +48,26 @@ const URGENCY_STYLES = {
 };
 
 /**
+ * Función segura para formatear fechas
+ */
+const formatTimeAgo = (dateString) => {
+    try {
+        if (!dateString) return 'Sin fecha';
+        
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'Fecha inválida';
+        
+        return formatDistanceToNow(date, {
+            addSuffix: true,
+            locale: es,
+        });
+    } catch (error) {
+        console.error('Error formateando fecha:', error);
+        return 'Fecha inválida';
+    }
+};
+
+/**
  * Componente NotificationItem
  * Representa un item individual de notificación en la lista
  * 
@@ -78,20 +98,17 @@ const NotificationItem = ({
     // Obtener ícono según tipo
     const IconComponent = ALERT_ICONS[tipoAlerta] || Info;
 
-    // Formatear fecha relativa
-    const timeAgo = formatDistanceToNow(new Date(fechaGeneracion), {
-        addSuffix: true,
-        locale: es,
-    });
+    // Formatear fecha relativa de forma segura
+    const timeAgo = formatTimeAgo(fechaGeneracion);
 
     // Truncar mensaje si es muy largo
-    const truncatedMessage = mensaje.length > 100 
+    const truncatedMessage = mensaje && mensaje.length > 100 
         ? `${mensaje.substring(0, 100)}...` 
-        : mensaje;
+        : mensaje || 'Sin mensaje';
 
     const handleClick = (e) => {
         // Evitar que el clic en checkbox active el onClick del item
-        if (e.target.type !== 'checkbox') {
+        if (e.target.type !== 'checkbox' && !e.target.closest('input[type="checkbox"]')) {
             onClick(notification);
         }
     };
@@ -137,7 +154,7 @@ const NotificationItem = ({
                         {nivelUrgencia}
                     </Badge>
                     
-                    {producto && (
+                    {producto && producto.nombre && (
                         <span className="text-xs font-medium text-gray-700 dark:text-dark-text truncate">
                             {producto.nombre}
                         </span>
@@ -159,11 +176,12 @@ const NotificationItem = ({
                 <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-muted">
                     <span>{timeAgo}</span>
                     
-                    {producto && tipoAlerta !== 'STOCK_EXCESIVO' && (
+                    {producto && tipoAlerta !== 'STOCK_EXCESIVO' && producto.stockActual !== undefined && (
                         <>
                             <span>•</span>
                             <span>
-                                Stock: {producto.stockActual}/{producto.stockMinimo || producto.stockMaximo}
+                                Stock: {producto.stockActual}
+                                {producto.stockMinimo && `/${producto.stockMinimo}`}
                             </span>
                         </>
                     )}

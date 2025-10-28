@@ -56,7 +56,7 @@ apiClient.interceptors.response.use(
             originalRequest._retry = true;
             localStorage.removeItem(SESSION.TOKEN_KEY);
             localStorage.removeItem(SESSION.USER_KEY);
-            window.location.href = "/login";
+            console.log("Token no guardado en la local store, redirigendo al /login")
             return Promise.reject(error);
         }
         if (error.response?.status === 403) {

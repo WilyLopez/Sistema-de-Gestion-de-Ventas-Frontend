@@ -203,9 +203,9 @@ const NotificationPanel = ({ isOpen, onClose }) => {
                         </div>
                     ) : (
                         <div className="divide-y divide-gray-200 dark:divide-dark-border">
-                            {filteredNotifications.map((notification) => (
+                            {filteredNotifications.map((notification, index) => (
                                 <NotificationItem
-                                    key={notification.id}
+                                    key={notification.id || `notification-${index}`} // ✅ KEY ÚNICA
                                     notification={notification}
                                     onClick={handleItemClick}
                                     onSelect={handleSelectItem}

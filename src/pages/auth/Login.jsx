@@ -1,4 +1,4 @@
-//src/pages/auth/Login.jsx
+// src/pages/auth/Login.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
@@ -13,7 +13,7 @@ import Logo from '@components/layout/common/Logo';
  */
 const Login = () => {
     const navigate = useNavigate();
-    const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+    const { login, isAuthenticated, isLoading: authLoading, user } = useAuth();
     
     const [formData, setFormData] = useState({
         username: '',
@@ -24,12 +24,27 @@ const Login = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [generalError, setGeneralError] = useState('');
 
-    // Redirigir si ya está autenticado
+    // Redirigir según el rol si ya está autenticado
     useEffect(() => {
-        if (isAuthenticated && !authLoading) {
-            navigate('/admin/dashboard', { replace: true });
+        if (isAuthenticated && !authLoading && user) {
+            console.log('Usuario autenticado, rol:', user.rol);
+            
+            // Redirigir según el rol del usuario
+            switch (user.rol?.toUpperCase()) {
+                case 'ADMINISTRADOR':
+                    navigate('/admin/dashboard', { replace: true });
+                    break;
+                case 'VENDEDOR':
+                    navigate('/vendedor/dashboard', { replace: true });
+                    break;
+                case 'EMPLEADO':
+                    navigate('/empleado/dashboard', { replace: true });
+                    break;
+                default:
+                    navigate('/unauthorized', { replace: true });
+            }
         }
-    }, [isAuthenticated, authLoading, navigate]);
+    }, [isAuthenticated, authLoading, user, navigate]);
 
     // Manejar cambios en inputs
     const handleChange = (e) => {
@@ -73,7 +88,7 @@ const Login = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    // Manejar submit
+    // Manejar submit - Versión mejorada
     const handleSubmit = async (e) => {
         e.preventDefault();
         
@@ -84,11 +99,15 @@ const Login = () => {
 
         try {
             const result = await login(formData.username, formData.password);
-
-            if (!result.success) {
+            
+            if (result.success) {
+                console.log('Login exitoso, rol:', result.user?.rol);
+                // La redirección se manejará en el useEffect con el user actualizado
+            } else {
                 setGeneralError(result.message || 'Usuario o contraseña incorrectos');
             }
         } catch (error) {
+            console.error('Error en login:', error);
             setGeneralError('Error de conexión. Intenta nuevamente.');
         } finally {
             setIsLoading(false);

@@ -270,31 +270,38 @@ const NewSale = () => {
     };
 
     const createQuickClient = async () => {
-        try {
-            if (!quickClient.numeroDocumento || !quickClient.nombre) {
-                alert('Complete documento y nombre del cliente');
-                return;
-            }
-
-            const newClient = await ClienteService.create({
-                tipoDocumento: quickClient.tipoDocumento,
-                numeroDocumento: quickClient.numeroDocumento,
-                nombre: quickClient.nombre,
-                activo: true,
-            });
-
-            setSelectedClient(newClient);
-            setShowClientModal(false);
-            setQuickClient({
-                tipoDocumento: 'DNI',
-                numeroDocumento: '',
-                nombre: '',
-            });
-        } catch (error) {
-            console.error('Error creando cliente:', error);
-            alert(error.message || 'Error al crear cliente');
+    try {
+        if (!quickClient.numeroDocumento || !quickClient.nombre) {
+            alert('Complete documento y nombre del cliente');
+            return;
         }
-    };
+
+        // Convertir tipoDocumento string a formato que espera el backend
+        const tipoDocumentoProcessed = quickClient.tipoDocumento.toUpperCase();
+
+        console.log('=== DEBUG CLIENTE CREATION ===');
+        console.log('Datos originales:', quickClient);
+        console.log('Tipo documento procesado:', tipoDocumentoProcessed);
+
+        const newClient = await ClienteService.create({
+            tipoDocumento: tipoDocumentoProcessed, // Enviar en mayúsculas
+            numeroDocumento: quickClient.numeroDocumento,
+            nombre: quickClient.nombre,
+            activo: true,
+        });
+
+        setSelectedClient(newClient);
+        setShowClientModal(false);
+        setQuickClient({
+            tipoDocumento: 'DNI',
+            numeroDocumento: '',
+            nombre: '',
+        });
+    } catch (error) {
+        console.error('Error creando cliente:', error);
+        alert(error.message || 'Error al crear cliente');
+    }
+};
 
     // ==================== PROCESAR VENTA ====================
 

@@ -327,7 +327,7 @@ export const ALERT_ICON_NAMES = {
 
 // API ENDPOINTS BASE
 export const API_BASE_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+    import.meta.env.VITE_API_URL || "http://localhost:8081/api";
 
 // DEBUG MODE
 export const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === "true";

@@ -3,12 +3,28 @@ import ENDPOINTS from "@api/endpoints";
 
 const clienteService = {
     create: async (clienteData) => {
-        const response = await post(ENDPOINTS.CLIENTES.BASE, clienteData);
+        // Procesar los datos antes de enviarlos
+        const processedData = {
+            ...clienteData,
+            tipoDocumento: clienteData.tipoDocumento?.toUpperCase() // Convertir a mayúsculas
+        };
+
+        console.log('=== CLIENTE SERVICE CREATE ===');
+        console.log('Datos originales:', clienteData);
+        console.log('Datos procesados:', processedData);
+
+        const response = await post(ENDPOINTS.CLIENTES.BASE, processedData);
         return response;
     },
 
     update: async (id, clienteData) => {
-        const response = await put(ENDPOINTS.CLIENTES.BY_ID(id), clienteData);
+        // También procesar datos en update por si acaso
+        const processedData = {
+            ...clienteData,
+            tipoDocumento: clienteData.tipoDocumento?.toUpperCase()
+        };
+
+        const response = await put(ENDPOINTS.CLIENTES.BY_ID(id), processedData);
         return response;
     },
 
@@ -22,8 +38,11 @@ const clienteService = {
     },
 
     getByDocumento: async (tipo, numero) => {
+        // Procesar tipo para métodos que usan parámetros
+        const processedTipo = tipo?.toUpperCase();
+        
         const response = await get(ENDPOINTS.CLIENTES.BY_DOCUMENTO, {
-            params: { tipo, numero },
+            params: { tipo: processedTipo, numero },
         });
         return response;
     },
@@ -50,16 +69,22 @@ const clienteService = {
     },
 
     validateDocumento: async (tipo, numero) => {
+        // Procesar tipo para validación
+        const processedTipo = tipo?.toUpperCase();
+        
         const response = await get(ENDPOINTS.CLIENTES.VALIDAR_DOCUMENTO, {
-            params: { tipo, numero },
+            params: { tipo: processedTipo, numero },
         });
         return response;
     },
 
     existsDocumento: async (tipo, numero) => {
         try {
+            // Procesar tipo para verificación de existencia
+            const processedTipo = tipo?.toUpperCase();
+            
             const response = await get(ENDPOINTS.CLIENTES.EXISTE_DOCUMENTO, {
-                params: { tipo, numero },
+                params: { tipo: processedTipo, numero },
             });
             return response.existe;
         } catch (error) {
@@ -101,17 +126,35 @@ const clienteService = {
     },
 
     validateDocumentoLocal: (tipo, numero) => {
-        switch (tipo) {
+        // Procesar tipo para validación local
+        const processedTipo = tipo?.toUpperCase();
+        
+        switch (processedTipo) {
             case "DNI":
                 return clienteService.validateDNI(numero);
             case "RUC":
                 return clienteService.validateRUC(numero);
             case "CE":
                 return clienteService.validateCE(numero);
+            case "CARNET_EXTRANJERIA":
+                return clienteService.validateCE(numero); // Mismo formato que CE
+            case "PASAPORTE":
+                // Para pasaporte, validación más flexible
+                return numero && numero.length >= 6 && numero.length <= 12;
             default:
                 return false;
         }
     },
+
+    // Método auxiliar para obtener opciones de tipo de documento
+    getDocumentTypes: () => {
+        return [
+            { value: 'DNI', label: 'DNI' },
+            { value: 'RUC', label: 'RUC' },
+            { value: 'CARNET_EXTRANJERIA', label: 'Carnet Extranjería' },
+            { value: 'PASAPORTE', label: 'Pasaporte' }
+        ];
+    }
 };
 
 export default clienteService;
