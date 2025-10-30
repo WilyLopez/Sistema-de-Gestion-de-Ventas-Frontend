@@ -58,12 +58,14 @@ const NewSale = () => {
         tipoDocumento: 'DNI',
         numeroDocumento: '',
         nombre: '',
+        apellido: '',
     });
 
     // Estados de pago
     const [paymentMethod, setPaymentMethod] = useState('EFECTIVO');
     const [amountPaid, setAmountPaid] = useState('');
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [tipoComprobante, setTipoComprobante] = useState('BOLETA');
 
     // Estados de procesamiento
     const [isProcessing, setIsProcessing] = useState(false);
@@ -134,19 +136,16 @@ const NewSale = () => {
             const existingItem = prevCart.find((item) => item.id === product.id);
 
             if (existingItem) {
-                // Verificar stock disponible
                 if (existingItem.cantidad >= product.stock) {
                     alert(`Stock insuficiente. Disponible: ${product.stock}`);
                     return prevCart;
                 }
-                // Incrementar cantidad
                 return prevCart.map((item) =>
                     item.id === product.id
                         ? { ...item, cantidad: item.cantidad + 1 }
                         : item
                 );
             } else {
-                // Agregar nuevo producto
                 if (product.stock < 1) {
                     alert('Producto sin stock');
                     return prevCart;
@@ -154,7 +153,8 @@ const NewSale = () => {
                 return [
                     ...prevCart,
                     {
-                        id: product.id,
+                        id: product.idProducto || product.id, // Asegurar que tenga ID
+                        idProducto: product.idProducto || product.id, // Agregar campo idProducto
                         codigo: product.codigo,
                         nombre: product.nombre,
                         precio: product.precioVenta,
@@ -166,7 +166,6 @@ const NewSale = () => {
             }
         });
 
-        // Limpiar búsqueda y enfocar
         setSearchQuery('');
         setShowProductResults(false);
         searchInputRef.current?.focus();
@@ -270,38 +269,40 @@ const NewSale = () => {
     };
 
     const createQuickClient = async () => {
-    try {
-        if (!quickClient.numeroDocumento || !quickClient.nombre) {
-            alert('Complete documento y nombre del cliente');
-            return;
+        try {
+            if (!quickClient.numeroDocumento || !quickClient.nombre || !quickClient.apellido) {
+                alert('Complete todos los campos obligatorios');
+                return;
+            }
+
+            const newClient = await ClienteService.create({
+                tipoDocumento: quickClient.tipoDocumento.toUpperCase(),
+                numeroDocumento: quickClient.numeroDocumento,
+                nombre: quickClient.nombre.trim(),
+                apellido: quickClient.apellido.trim(),
+                estado: true,
+            });
+
+            console.log('Cliente creado:', newClient);
+
+            if (!newClient.idCliente && !newClient.id) {
+                alert('Error: El cliente no tiene ID asignado');
+                return;
+            }
+
+            setSelectedClient(newClient);
+            setShowClientModal(false);
+            setQuickClient({
+                tipoDocumento: 'DNI',
+                numeroDocumento: '',
+                nombre: '',
+                apellido: '',
+            });
+        } catch (error) {
+            console.error('Error creando cliente:', error);
+            alert(error.message || 'Error al crear cliente');
         }
-
-        // Convertir tipoDocumento string a formato que espera el backend
-        const tipoDocumentoProcessed = quickClient.tipoDocumento.toUpperCase();
-
-        console.log('=== DEBUG CLIENTE CREATION ===');
-        console.log('Datos originales:', quickClient);
-        console.log('Tipo documento procesado:', tipoDocumentoProcessed);
-
-        const newClient = await ClienteService.create({
-            tipoDocumento: tipoDocumentoProcessed, // Enviar en mayúsculas
-            numeroDocumento: quickClient.numeroDocumento,
-            nombre: quickClient.nombre,
-            activo: true,
-        });
-
-        setSelectedClient(newClient);
-        setShowClientModal(false);
-        setQuickClient({
-            tipoDocumento: 'DNI',
-            numeroDocumento: '',
-            nombre: '',
-        });
-    } catch (error) {
-        console.error('Error creando cliente:', error);
-        alert(error.message || 'Error al crear cliente');
-    }
-};
+    };
 
     // ==================== PROCESAR VENTA ====================
 
@@ -318,7 +319,6 @@ const NewSale = () => {
         try {
             setIsProcessing(true);
 
-            // Validaciones
             if (cart.length === 0) {
                 alert('El carrito está vacío');
                 return;
@@ -329,46 +329,69 @@ const NewSale = () => {
                 return;
             }
 
+            const clienteId = selectedClient.idCliente || selectedClient.id;
+            if (!clienteId) {
+                alert('Error: El cliente seleccionado no tiene ID válido');
+                return;
+            }
+
             const paid = parseFloat(amountPaid) || 0;
             if (paid < total) {
                 alert('El monto pagado es insuficiente');
                 return;
             }
 
-            // Preparar detalles de venta
-            const detalles = cart.map((item) => ({
-                idProducto: item.id,
-                cantidad: item.cantidad,
-                precioUnitario: item.precio,
-                descuento: item.descuento,
-            }));
-
-            // Datos de la venta
-            const ventaData = {
-                idCliente: selectedClient.id,
-                idUsuario: user.id,
-                detalles,
-                metodoPago: paymentMethod,
-                subtotal,
-                descuentoTotal: totalDiscount,
-                total,
+            const metodoPagoMap = {
+                'EFECTIVO': 1,
+                'TARJETA_CREDITO': 2,
+                'TARJETA_DEBITO': 3,
+                'YAPE': 4,
+                'PLIN': 5,
+                'TRANSFERENCIA': 6
             };
 
-            // Crear venta
+            const detalles = cart.map((item) => {
+                const productoId = item.idProducto || item.id;
+                if (!productoId) {
+                    throw new Error(`El producto "${item.nombre}" no tiene ID válido`);
+                }
+
+                return {
+                    idProducto: productoId,
+                    cantidad: item.cantidad,
+                    precioUnitario: item.precio,
+                    descuento: item.descuento,
+                };
+            });
+
+            const ventaData = {
+                idCliente: clienteId,
+                idUsuario: user.id,
+                idVendedor: user.id, // <-- AGREGAR ESTE CAMPO OBLIGATORIO
+                idMetodoPago: metodoPagoMap[paymentMethod],
+                tipoComprobante: tipoComprobante,
+                subtotal: subtotal,
+                descuentoTotal: totalDiscount,
+                total: total,
+                detalles: detalles,
+            };
+
+            console.log('=== DATOS DE VENTA COMPLETOS ===');
+            console.log('Venta Data:', JSON.stringify(ventaData, null, 2));
+
             const response = await VentaService.create(ventaData);
 
-            // Éxito
             setLastSaleId(response.id);
             setSaleCompleted(true);
             setShowPaymentModal(false);
 
-            // Limpiar todo después de 2 segundos
             setTimeout(() => {
                 resetSale();
             }, 3000);
         } catch (error) {
-            console.error('Error procesando venta:', error);
-            alert(error.message || 'Error al procesar la venta');
+            console.error('Error completo procesando venta:', error);
+            console.error('Response data:', error.response?.data);
+            alert(error.response?.data?.mensaje || error.message || 'Error al procesar la venta');
         } finally {
             setIsProcessing(false);
         }
@@ -724,9 +747,7 @@ const NewSale = () => {
                             <Select
                                 label="Tipo Documento"
                                 value={quickClient.tipoDocumento}
-                                onChange={(value) =>
-                                    setQuickClient({ ...quickClient, tipoDocumento: value })
-                                }
+                                onChange={(value) => setQuickClient({ ...quickClient, tipoDocumento: value })}
                                 options={Object.values(DOCUMENT_TYPES).map((doc) => ({
                                     value: doc.code,
                                     label: doc.label,
@@ -735,22 +756,23 @@ const NewSale = () => {
                             <Input
                                 label="Número Documento"
                                 value={quickClient.numeroDocumento}
-                                onChange={(e) =>
-                                    setQuickClient({
-                                        ...quickClient,
-                                        numeroDocumento: e.target.value,
-                                    })
-                                }
+                                onChange={(e) => setQuickClient({ ...quickClient, numeroDocumento: e.target.value })}
                             />
                         </div>
-                        <Input
-                            label="Nombre Completo"
-                            value={quickClient.nombre}
-                            onChange={(e) =>
-                                setQuickClient({ ...quickClient, nombre: e.target.value })
-                            }
-                            className="mt-3"
-                        />
+                        <div className="grid grid-cols-2 gap-3 mt-3">
+                            <Input
+                                label="Nombres"
+                                value={quickClient.nombre}
+                                onChange={(e) => setQuickClient({ ...quickClient, nombre: e.target.value })}
+                                placeholder="Ej: Juan Carlos"
+                            />
+                            <Input
+                                label="Apellidos"
+                                value={quickClient.apellido}
+                                onChange={(e) => setQuickClient({ ...quickClient, apellido: e.target.value })}
+                                placeholder="Ej: Pérez García"
+                            />
+                        </div>
                         <Button
                             variant="primary"
                             fullWidth
@@ -779,6 +801,16 @@ const NewSale = () => {
                             {formatCurrency(total)}
                         </p>
                     </div>
+
+                    <Select
+                        label="Tipo de Comprobante"
+                        value={tipoComprobante}
+                        onChange={(value) => setTipoComprobante(value)}
+                        options={[
+                            { value: 'BOLETA', label: 'BOLETA' },
+                            { value: 'FACTURA', label: 'FACTURA' }
+                        ]}
+                    />
 
                     <Select
                         label="Método de Pago"

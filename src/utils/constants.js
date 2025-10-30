@@ -54,12 +54,12 @@ export const DOCUMENT_TYPES = {
 
 // MÉTODOS DE PAGO
 export const PAYMENT_METHODS = {
-    CASH: "EFECTIVO",
-    CREDIT_CARD: "TARJETA_CREDITO",
-    DEBIT_CARD: "TARJETA_DEBITO",
-    TRANSFER: "TRANSFERENCIA",
-    YAPE: "YAPE",
-    PLIN: "PLIN",
+    EFECTIVO: 'EFECTIVO',
+    TARJETA_CREDITO: 'TARJETA_CREDITO',
+    TARJETA_DEBITO: 'TARJETA_DEBITO',
+    YAPE: 'YAPE',
+    PLIN: 'PLIN',
+    TRANSFERENCIA: 'TRANSFERENCIA'
 };
 
 // TIPOS DE MOVIMIENTO DE INVENTARIO
@@ -327,7 +327,7 @@ export const ALERT_ICON_NAMES = {
 
 // API ENDPOINTS BASE
 export const API_BASE_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+    import.meta.env.VITE_API_URL || "http://localhost:8080/";
 
 // DEBUG MODE
 export const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === "true";
