@@ -265,36 +265,36 @@ export const VALIDATION_RULES = {
  */
 export const URGENCY_STYLES = {
     CRITICO: {
-        bg: 'bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20',
-        border: 'border-l-4 border-red-500',
-        icon: 'text-red-600 dark:text-red-400',
-        badge: 'bg-red-500',
-        bgIcon: 'bg-red-100 dark:bg-red-900/20',
-        color: 'text-red-600 dark:text-red-400',
+        bg: "bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20",
+        border: "border-l-4 border-red-500",
+        icon: "text-red-600 dark:text-red-400",
+        badge: "bg-red-500",
+        bgIcon: "bg-red-100 dark:bg-red-900/20",
+        color: "text-red-600 dark:text-red-400",
     },
     ALTO: {
-        bg: 'bg-orange-50 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20',
-        border: 'border-l-4 border-orange-500',
-        icon: 'text-orange-600 dark:text-orange-400',
-        badge: 'bg-orange-500',
-        bgIcon: 'bg-orange-100 dark:bg-orange-900/20',
-        color: 'text-orange-600 dark:text-orange-400',
+        bg: "bg-orange-50 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20",
+        border: "border-l-4 border-orange-500",
+        icon: "text-orange-600 dark:text-orange-400",
+        badge: "bg-orange-500",
+        bgIcon: "bg-orange-100 dark:bg-orange-900/20",
+        color: "text-orange-600 dark:text-orange-400",
     },
     MEDIO: {
-        bg: 'bg-yellow-50 dark:bg-yellow-900/10 hover:bg-yellow-100 dark:hover:bg-yellow-900/20',
-        border: 'border-l-4 border-yellow-500',
-        icon: 'text-yellow-600 dark:text-yellow-400',
-        badge: 'bg-yellow-500',
-        bgIcon: 'bg-yellow-100 dark:bg-yellow-900/20',
-        color: 'text-yellow-600 dark:text-yellow-400',
+        bg: "bg-yellow-50 dark:bg-yellow-900/10 hover:bg-yellow-100 dark:hover:bg-yellow-900/20",
+        border: "border-l-4 border-yellow-500",
+        icon: "text-yellow-600 dark:text-yellow-400",
+        badge: "bg-yellow-500",
+        bgIcon: "bg-yellow-100 dark:bg-yellow-900/20",
+        color: "text-yellow-600 dark:text-yellow-400",
     },
     BAJO: {
-        bg: 'bg-blue-50 dark:bg-blue-900/10 hover:bg-blue-100 dark:hover:bg-blue-900/20',
-        border: 'border-l-4 border-blue-500',
-        icon: 'text-blue-600 dark:text-blue-400',
-        badge: 'bg-blue-500',
-        bgIcon: 'bg-blue-100 dark:bg-blue-900/20',
-        color: 'text-blue-600 dark:text-blue-400',
+        bg: "bg-blue-50 dark:bg-blue-900/10 hover:bg-blue-100 dark:hover:bg-blue-900/20",
+        border: "border-l-4 border-blue-500",
+        icon: "text-blue-600 dark:text-blue-400",
+        badge: "bg-blue-500",
+        bgIcon: "bg-blue-100 dark:bg-blue-900/20",
+        color: "text-blue-600 dark:text-blue-400",
     },
 };
 
@@ -302,13 +302,13 @@ export const URGENCY_STYLES = {
  * Mapeo de tipos de alerta a etiquetas legibles en español
  */
 export const ALERT_LABELS = {
-    STOCK_MINIMO: 'Stock Mínimo',
-    STOCK_AGOTADO: 'Stock Agotado',
-    STOCK_EXCESIVO: 'Stock Excesivo',
-    REORDEN: 'Reorden Automática',
-    DEVOLUCION_PENDIENTE: 'Devolución Pendiente',
-    VENTA_ANULADA: 'Venta Anulada',
-    ACTUALIZACION_SISTEMA: 'Actualización del Sistema',
+    STOCK_MINIMO: "Stock Mínimo",
+    STOCK_AGOTADO: "Stock Agotado",
+    STOCK_EXCESIVO: "Stock Excesivo",
+    REORDEN: "Reorden Automática",
+    DEVOLUCION_PENDIENTE: "Devolución Pendiente",
+    VENTA_ANULADA: "Venta Anulada",
+    ACTUALIZACION_SISTEMA: "Actualización del Sistema",
 };
 
 /**
@@ -316,18 +316,18 @@ export const ALERT_LABELS = {
  * (Usar en conjunto con: import { AlertTriangle } from 'lucide-react')
  */
 export const ALERT_ICON_NAMES = {
-    STOCK_MINIMO: 'AlertTriangle',
-    STOCK_AGOTADO: 'AlertCircle',
-    STOCK_EXCESIVO: 'Package',
-    REORDEN: 'Info',
-    DEVOLUCION_PENDIENTE: 'RotateCcw',
-    VENTA_ANULADA: 'XCircle',
-    ACTUALIZACION_SISTEMA: 'Info',
+    STOCK_MINIMO: "AlertTriangle",
+    STOCK_AGOTADO: "AlertCircle",
+    STOCK_EXCESIVO: "Package",
+    REORDEN: "Info",
+    DEVOLUCION_PENDIENTE: "RotateCcw",
+    VENTA_ANULADA: "XCircle",
+    ACTUALIZACION_SISTEMA: "Info",
 };
 
 // API ENDPOINTS BASE
 export const API_BASE_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:8081/api";
+    import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
 // DEBUG MODE
 export const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === "true";
@@ -342,8 +342,8 @@ export const ERROR_CODES = {
 
 // Para estados de carga
 export const LOADING_STATES = {
-    IDLE: 'idle',
-    LOADING: 'loading',
-    SUCCESS: 'success',
-    ERROR: 'error',
+    IDLE: "idle",
+    LOADING: "loading",
+    SUCCESS: "success",
+    ERROR: "error",
 };
