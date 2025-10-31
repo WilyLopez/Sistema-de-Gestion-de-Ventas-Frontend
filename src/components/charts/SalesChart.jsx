@@ -4,7 +4,7 @@ import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
  * Componente SalesChart
  * Gráfico de ventas con recharts
  * 
- * @param {Array} data - Datos del gráfico [{fecha, ventas, cantidad}]
+ * @param {Array} data - Datos del gráfico [{fecha, total, ventas}]
  * @param {string} type - Tipo: 'line' | 'area'
  * @param {string} title - Título del gráfico
  * @param {number} height - Altura del gráfico
@@ -30,7 +30,7 @@ const SalesChart = ({
                     </p>
                     {payload.map((entry, index) => (
                         <p key={index} className="text-sm" style={{ color: entry.color }}>
-                            {entry.name}: {entry.name === 'Ventas' ? formatCurrency(entry.value) : entry.value}
+                            {entry.dataKey === 'total' ? 'Monto Total: ' + formatCurrency(entry.value) : 'Cantidad: ' + entry.value + ' ventas'}
                         </p>
                     ))}
                 </div>
@@ -63,39 +63,60 @@ const SalesChart = ({
             <ResponsiveContainer width="100%" height={height}>
                 <Chart data={data}>
                     <defs>
-                        <linearGradient id="colorVentas" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id="colorMonto" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
                             <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis 
-                        dataKey="fecha" 
+                    <XAxis
+                        dataKey="fecha"
                         stroke="#6b7280"
                         style={{ fontSize: '12px' }}
                     />
-                    <YAxis 
-                        stroke="#6b7280"
+
+                    {/* Eje Y principal para el monto */}
+                    <YAxis
+                        yAxisId="left"
+                        stroke="#3b82f6"
                         style={{ fontSize: '12px' }}
                         tickFormatter={(value) => `S/ ${value}`}
                     />
+
+                    {/* Eje Y secundario para la cantidad */}
+                    <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        stroke="#10b981"
+                        style={{ fontSize: '12px' }}
+                        tickFormatter={(value) => `${value}`}
+                    />
+
                     <Tooltip content={<CustomTooltip />} />
                     <Legend />
+
+                    {/* Línea para el monto total (eje Y izquierdo) */}
                     <ChartElement
+                        yAxisId="left"
+                        type="monotone"
+                        dataKey="total"
+                        name="Monto Total (S/)"
+                        stroke="#3b82f6"
+                        fill={type === 'area' ? 'url(#colorMonto)' : undefined}
+                        strokeWidth={2}
+                        dot={{ fill: '#3b82f6', strokeWidth: 2 }}
+                    />
+
+                    {/* Línea para la cantidad de ventas (eje Y derecho) */}
+                    <Line
+                        yAxisId="right"
                         type="monotone"
                         dataKey="ventas"
-                        name="Ventas"
-                        stroke="#3b82f6"
-                        fill={type === 'area' ? 'url(#colorVentas)' : undefined}
-                        strokeWidth={2}
-                    />
-                    <ChartElement
-                        type="monotone"
-                        dataKey="cantidad"
-                        name="Cantidad"
+                        name="Cantidad de Ventas"
                         stroke="#10b981"
-                        fill={type === 'area' ? 'none' : undefined}
                         strokeWidth={2}
+                        strokeDasharray="3 3" // Línea punteada para diferenciar
+                        dot={{ fill: '#10b981', strokeWidth: 2 }}
                     />
                 </Chart>
             </ResponsiveContainer>
