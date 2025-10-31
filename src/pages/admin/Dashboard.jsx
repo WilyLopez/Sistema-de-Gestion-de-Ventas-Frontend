@@ -163,9 +163,9 @@ const AdminDashboard = () => {
     // Función helper para formatear números de manera segura
     const formatCurrency = (value) => {
         const amount = dashboardData?.ventasHoy?.total || value || 0;
-        return amount.toLocaleString('es-PE', { 
+        return amount.toLocaleString('es-PE', {
             minimumFractionDigits: 2,
-            maximumFractionDigits: 2 
+            maximumFractionDigits: 2
         });
     };
 
@@ -249,9 +249,9 @@ const AdminDashboard = () => {
 
                 <KPICard
                     title="Ventas del Mes"
-                    value={`S/ ${dashboardData?.ventasMes?.total?.toLocaleString('es-PE', { 
+                    value={`S/ ${dashboardData?.ventasMes?.total?.toLocaleString('es-PE', {
                         minimumFractionDigits: 2,
-                        maximumFractionDigits: 2 
+                        maximumFractionDigits: 2
                     }) || '0.00'}`}
                     subtitle={`${dashboardData?.ventasMes?.cantidad || 0} ventas`}
                     icon={<TrendingUp className="w-6 h-6" />}
@@ -294,7 +294,10 @@ const AdminDashboard = () => {
                 />
 
                 <PieChart
-                    data={dashboardData?.topCategorias || []}
+                    data={(dashboardData?.topCategorias || []).map(item => ({
+                        name: item.categoria,
+                        value: item.total
+                    }))}
                     title="Ventas por Categoría"
                     height={300}
                 />
@@ -357,8 +360,8 @@ const AdminDashboard = () => {
                                             </p>
                                         </div>
                                         <div className="flex flex-col items-end gap-2">
-                                            <Badge 
-                                                variant="custom" 
+                                            <Badge
+                                                variant="custom"
                                                 className="bg-red-500 text-white flex-shrink-0"
                                                 size="sm"
                                             >

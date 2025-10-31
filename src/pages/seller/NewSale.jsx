@@ -133,7 +133,7 @@ const NewSale = () => {
 
     const addToCart = (product) => {
         setCart((prevCart) => {
-            const existingItem = prevCart.find((item) => item.id === product.id);
+            const existingItem = prevCart.find((item) => item.idProducto === product.idProducto);
 
             if (existingItem) {
                 if (existingItem.cantidad >= product.stock) {
@@ -141,7 +141,7 @@ const NewSale = () => {
                     return prevCart;
                 }
                 return prevCart.map((item) =>
-                    item.id === product.id
+                    item.idProducto === product.idProducto
                         ? { ...item, cantidad: item.cantidad + 1 }
                         : item
                 );
@@ -153,8 +153,8 @@ const NewSale = () => {
                 return [
                     ...prevCart,
                     {
-                        id: product.idProducto || product.id, // Asegurar que tenga ID
-                        idProducto: product.idProducto || product.id, // Agregar campo idProducto
+                        id: product.idProducto,
+                        idProducto: product.idProducto,
                         codigo: product.codigo,
                         nombre: product.nombre,
                         precio: product.precioVenta,
@@ -366,14 +366,14 @@ const NewSale = () => {
 
             const ventaData = {
                 idCliente: clienteId,
-                idUsuario: user.id,
-                idVendedor: user.id, // <-- AGREGAR ESTE CAMPO OBLIGATORIO
+                idUsuario: user.id, // ← CAMBIAR idVendedor por idUsuario
                 idMetodoPago: metodoPagoMap[paymentMethod],
                 tipoComprobante: tipoComprobante,
                 subtotal: subtotal,
                 descuentoTotal: totalDiscount,
                 total: total,
                 detalles: detalles,
+                // ELIMINAR: idVendedor: user.id, // ← QUITAR ESTA LÍNEA
             };
 
             console.log('=== DATOS DE VENTA COMPLETOS ===');
@@ -396,7 +396,6 @@ const NewSale = () => {
             setIsProcessing(false);
         }
     };
-
     const resetSale = () => {
         setCart([]);
         setSelectedClient(null);
