@@ -101,19 +101,41 @@ const MySales = () => {
                 endOfDay.toISOString()
             );
 
-            // Filtrar solo las ventas del usuario actual
-            const myStats = response.filter(stat => stat.idUsuario === user.id)[0] || {
-                totalVentas: 0,
-                totalMonto: 0,
-            };
+            console.log('Respuesta de estadísticas:', response);
 
-            setStats({
-                ...stats,
-                ventasHoy: myStats.totalVentas,
-                montoHoy: myStats.totalMonto,
-            });
+            if (Array.isArray(response)) {
+                const myStats = response.filter(stat => stat.idUsuario === user.id)[0] || {
+                    totalVentas: 0,
+                    totalMonto: 0,
+                };
+                setStats({
+                    ...stats,
+                    ventasHoy: myStats.totalVentas,
+                    montoHoy: myStats.totalMonto,
+                });
+            } else if (response && typeof response === 'object') {
+                setStats({
+                    totalVentas: response.totalVentas || 0,
+                    totalMonto: response.totalMonto || 0,
+                    ventasHoy: response.ventasHoy || response.totalVentas || 0,
+                    montoHoy: response.montoHoy || response.totalMonto || 0,
+                });
+            } else {
+                setStats({
+                    totalVentas: 0,
+                    totalMonto: 0,
+                    ventasHoy: 0,
+                    montoHoy: 0,
+                });
+            }
         } catch (error) {
             console.error('Error cargando estadísticas:', error);
+            setStats({
+                totalVentas: 0,
+                totalMonto: 0,
+                ventasHoy: 0,
+                montoHoy: 0,
+            });
         }
     };
 
@@ -252,16 +274,17 @@ const MySales = () => {
             ),
         },
         {
-            key: 'metodoPago',
+            key: 'nombreMetodoPago',
             label: 'Método Pago',
             sortable: true,
             render: (value) => {
                 const methodMap = {
-                    EFECTIVO: { icon: DollarSign, color: 'success' },
-                    TARJETA_CREDITO: { icon: CreditCard, color: 'info' },
-                    TARJETA_DEBITO: { icon: CreditCard, color: 'primary' },
-                    YAPE: { icon: DollarSign, color: 'warning' },
-                    PLIN: { icon: DollarSign, color: 'warning' },
+                    'EFECTIVO': { icon: DollarSign, color: 'success' },
+                    'TARJETA CREDITO': { icon: CreditCard, color: 'info' },
+                    'TARJETA DEBITO': { icon: CreditCard, color: 'primary' },
+                    'YAPE': { icon: DollarSign, color: 'warning' },
+                    'PLIN': { icon: DollarSign, color: 'warning' },
+                    'TRANSFERENCIA': { icon: CreditCard, color: 'info' },
                 };
                 const method = methodMap[value] || { icon: DollarSign, color: 'default' };
                 const Icon = method.icon;
@@ -269,7 +292,7 @@ const MySales = () => {
                 return (
                     <Badge variant={method.color} size="sm">
                         <Icon className="w-3 h-3 mr-1" />
-                        {value?.replace(/_/g, ' ')}
+                        {value}
                     </Badge>
                 );
             },
