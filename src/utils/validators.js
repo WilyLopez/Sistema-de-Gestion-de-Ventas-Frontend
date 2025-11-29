@@ -1,3 +1,5 @@
+// src/utils/validators.js
+
 import { DOCUMENT_TYPES, VALIDATION_RULES } from "./constants";
 
 // Validar DNI peruano (8 dígitos)

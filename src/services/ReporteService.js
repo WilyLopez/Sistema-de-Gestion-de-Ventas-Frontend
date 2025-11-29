@@ -157,6 +157,29 @@ const ReporteService = {
     },
 
     /**
+     * Obtiene el reporte diario de ventas para un vendedor.
+     * @param {number} userId - El ID del usuario (vendedor).
+     * @param {string} date - La fecha del reporte en formato 'YYYY-MM-DD'.
+     */
+    getSellerDailyReport: async (userId, date) => {
+        if (!userId || !date) {
+            throw new Error("User ID and date are required for the seller daily report.");
+        }
+        try {
+            const response = await get(ENDPOINTS.REPORTES.VENDEDOR_DIARIO, {
+                params: {
+                    idUsuario: userId,
+                    fecha: date
+                }
+            });
+            return response;
+        } catch (error) {
+            console.error(`Error fetching daily report for user ${userId}:`, error);
+            throw error;
+        }
+    },
+
+    /**
      * RF-014: Obtener reportes disponibles
      */
     getAvailableReports: async () => {

@@ -42,10 +42,13 @@ const productService = {
         return response;
     },
 
-    search: async (texto, page = 0, size = 20) => {
-        const response = await get(ENDPOINTS.PRODUCTOS.BUSCAR, {
-            params: { texto, page, size },
-        });
+    search: async (filters = {}, page = 0, size = 20) => {
+        const params = {
+            ...filters,
+            page,
+            size,
+        };
+        const response = await get(ENDPOINTS.PRODUCTOS.BUSCAR, { params });
         return response;
     },
 

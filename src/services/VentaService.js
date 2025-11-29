@@ -13,8 +13,8 @@ const VentaService = {
         return response;
     },
 
-    getByCodigo: async (codigo) => {
-        const response = await get(ENDPOINTS.VENTAS.BY_CODIGO(codigo));
+    getByCodigo: async (codigoVenta) => {
+        const response = await get(ENDPOINTS.VENTAS.BY_CODIGO(codigoVenta));
         return response;
     },
 
@@ -55,6 +55,17 @@ const VentaService = {
     getStatistics: async (fechaInicio, fechaFin) => {
         const response = await get(ENDPOINTS.VENTAS.ESTADISTICAS, {
             params: { fechaInicio, fechaFin }
+        });
+        return response;
+    },
+
+    getSellerStatistics: async (userId, fechaInicio, fechaFin) => {
+        const response = await get(ENDPOINTS.VENTAS.VENDEDOR_ESTADISTICAS, {
+            params: { 
+                idUsuario: userId,
+                fechaInicio: fechaInicio ? new Date(fechaInicio).toISOString() : undefined,
+                fechaFin: fechaFin ? new Date(fechaFin).toISOString() : undefined,
+            }
         });
         return response;
     },
