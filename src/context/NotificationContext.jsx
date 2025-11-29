@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useCallback, useContext } from "react";
-import { get, del, patch } from "@api/axios.config";
+import { get, del, put } from "@api/axios.config";
 import ENDPOINTS from "@api/endpoints";
 import { NOTIFICATIONS_CONFIG, NOTIFICATION_TYPES } from "@utils/constants";
 import { useSound } from "@hooks/useSound";
@@ -13,7 +13,7 @@ export const NotificationProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [errorCount, setErrorCount] = useState(0);
     const { playCritical, playNotification } = useSound();
-    const { isAuthenticated } = useContext(AuthContext);
+    const { isAuthenticated, user } = useContext(AuthContext);
 
     const fetchNotifications = useCallback(async () => {
         if (!NOTIFICATIONS_CONFIG.ENABLED || !isAuthenticated) {
@@ -24,9 +24,31 @@ export const NotificationProvider = ({ children }) => {
             setIsLoading(true);
             const data = await get(ENDPOINTS.ALERTAS.BASE);
 
-            const notificationsArray = Array.isArray(data) ? data : [];
-            
-            const sortedNotifications = notificationsArray.sort(
+            const notificationsArray = (data && Array.isArray(data.content)) ? data.content : [];
+
+            const transformedNotifications = notificationsArray.map(n => {
+                if (!n.idAlerta) {
+                    console.warn('Notificación sin ID:', n);
+                }
+
+                return {
+                    id: n.idAlerta,
+                    type: n.tipoAlerta,
+                    message: n.mensaje,
+                    createdAt: n.fechaAlerta,
+                    isRead: n.leida,
+                    priority: NOTIFICATION_TYPES[n.tipoAlerta]?.priority || 1,
+                    nivelUrgencia: n.nivelUrgencia,
+                    producto: n.producto,
+                    readAt: n.fechaLectura,
+                    readBy: n.usuarioNotificado,
+                    leida: n.leida,
+                    stockActual: n.stockActual,
+                    stockUmbral: n.stockUmbral,
+                };
+            });
+
+            const sortedNotifications = transformedNotifications.sort(
                 (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
             );
 
@@ -36,7 +58,7 @@ export const NotificationProvider = ({ children }) => {
             setUnreadCount(unread);
 
             const criticalUnread = sortedNotifications.filter(
-                (n) => !n.isRead && NOTIFICATION_TYPES[n.type]?.priority >= 3
+                (n) => !n.isRead && n.priority >= 3
             );
 
             if (criticalUnread.length > 0) {
@@ -69,12 +91,28 @@ export const NotificationProvider = ({ children }) => {
 
     const markAsRead = async (id) => {
         try {
-            await patch(ENDPOINTS.ALERTAS.MARK_READ(id));
+            if (!id || id === 'undefined') {
+                console.error('ID de notificación inválido:', id);
+                return;
+            }
+
+            if (!user?.id) {
+                console.error('Usuario no autenticado o ID no disponible');
+                throw new Error('Usuario no autenticado');
+            }
+
+            await put(`${ENDPOINTS.ALERTAS.MARK_READ(id)}?idUsuario=${user.id}`, {});
 
             setNotifications((prevNotifications) =>
                 prevNotifications.map((notification) =>
                     notification.id === id
-                        ? { ...notification, isRead: true }
+                        ? {
+                            ...notification,
+                            isRead: true,
+                            leida: true,
+                            readAt: new Date().toISOString(),
+                            readBy: user
+                        }
                         : notification
                 )
             );
@@ -82,29 +120,54 @@ export const NotificationProvider = ({ children }) => {
             setUnreadCount((prev) => Math.max(0, prev - 1));
         } catch (error) {
             console.error("Error al marcar notificación como leída:", error);
+            throw error;
         }
     };
 
     const markAllAsRead = async () => {
         try {
-            await patch(ENDPOINTS.ALERTAS.MARK_ALL_READ);
+            if (!user?.id) {
+                console.error('Usuario no autenticado');
+                throw new Error('Usuario no autenticado');
+            }
+
+            const unreadIds = notifications
+                .filter(n => !n.isRead)
+                .map(n => n.id);
+
+            if (unreadIds.length === 0) {
+                return;
+            }
+
+            const promises = unreadIds.map(id =>
+                put(`${ENDPOINTS.ALERTAS.MARK_READ(id)}?idUsuario=${user.id}`, {})
+            );
+
+            await Promise.all(promises);
 
             setNotifications((prevNotifications) =>
                 prevNotifications.map((notification) => ({
                     ...notification,
                     isRead: true,
+                    leida: true,
+                    readAt: new Date().toISOString(),
+                    readBy: user
                 }))
             );
 
             setUnreadCount(0);
         } catch (error) {
             console.error("Error al marcar todas como leídas:", error);
+            throw error;
         }
     };
 
     const deleteNotification = async (id) => {
         try {
-            await del(ENDPOINTS.ALERTAS.DELETE(id));
+            if (!id || id === 'undefined') {
+                console.error('ID de notificación inválido:', id);
+                return;
+            }
 
             const deletedNotification = notifications.find((n) => n.id === id);
 
@@ -119,28 +182,35 @@ export const NotificationProvider = ({ children }) => {
             }
         } catch (error) {
             console.error("Error al eliminar notificación:", error);
+            await fetchNotifications();
+            throw error;
         }
     };
 
     const deleteMultiple = async (ids) => {
         try {
-            await Promise.all(
-                ids.map((id) => del(ENDPOINTS.ALERTAS.DELETE(id)))
-            );
+            const validIds = ids.filter(id => id && id !== 'undefined');
+
+            if (validIds.length === 0) {
+                console.error('No hay IDs válidos para eliminar');
+                return;
+            }
 
             const deletedUnread = notifications.filter(
-                (n) => ids.includes(n.id) && !n.isRead
+                (n) => validIds.includes(n.id) && !n.isRead
             ).length;
 
             setNotifications((prevNotifications) =>
                 prevNotifications.filter(
-                    (notification) => !ids.includes(notification.id)
+                    (notification) => !validIds.includes(notification.id)
                 )
             );
 
             setUnreadCount((prev) => Math.max(0, prev - deletedUnread));
         } catch (error) {
             console.error("Error al eliminar notificaciones:", error);
+            await fetchNotifications();
+            throw error;
         }
     };
 

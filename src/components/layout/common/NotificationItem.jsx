@@ -1,12 +1,9 @@
-import { AlertTriangle, AlertCircle, Info, RotateCcw, XCircle, Package } from 'lucide-react';
+import { AlertTriangle, AlertCircle, Info, RotateCcw, XCircle, Package, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Checkbox from '@components/ui/Checkbox';
 import Badge from '@components/ui/Badge';
 
-/**
- * Mapeo de tipos de alerta a iconos
- */
 const ALERT_ICONS = {
     STOCK_MINIMO: AlertTriangle,
     STOCK_AGOTADO: AlertCircle,
@@ -17,65 +14,56 @@ const ALERT_ICONS = {
     ACTUALIZACION_SISTEMA: Info,
 };
 
-/**
- * Mapeo de niveles de urgencia a estilos
- */
 const URGENCY_STYLES = {
     CRITICO: {
-        bg: 'bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20',
-        border: 'border-l-4 border-red-500',
+        bg: 'bg-gradient-to-r from-red-50 to-red-100/50 dark:from-red-900/20 dark:to-red-900/10 hover:from-red-100 hover:to-red-100/70 dark:hover:from-red-900/30 dark:hover:to-red-900/20',
+        border: 'border-l-4 border-red-500 shadow-sm shadow-red-500/20',
         icon: 'text-red-600 dark:text-red-400',
-        badge: 'bg-red-500',
+        iconBg: 'bg-red-100 dark:bg-red-900/30',
+        badge: 'bg-red-500 shadow-sm',
+        dot: 'bg-red-500',
     },
     ALTO: {
-        bg: 'bg-orange-50 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20',
-        border: 'border-l-4 border-orange-500',
+        bg: 'bg-gradient-to-r from-orange-50 to-orange-100/50 dark:from-orange-900/20 dark:to-orange-900/10 hover:from-orange-100 hover:to-orange-100/70 dark:hover:from-orange-900/30 dark:hover:to-orange-900/20',
+        border: 'border-l-4 border-orange-500 shadow-sm shadow-orange-500/20',
         icon: 'text-orange-600 dark:text-orange-400',
-        badge: 'bg-orange-500',
+        iconBg: 'bg-orange-100 dark:bg-orange-900/30',
+        badge: 'bg-orange-500 shadow-sm',
+        dot: 'bg-orange-500',
     },
     MEDIO: {
-        bg: 'bg-yellow-50 dark:bg-yellow-900/10 hover:bg-yellow-100 dark:hover:bg-yellow-900/20',
-        border: 'border-l-4 border-yellow-500',
+        bg: 'bg-gradient-to-r from-yellow-50 to-yellow-100/50 dark:from-yellow-900/20 dark:to-yellow-900/10 hover:from-yellow-100 hover:to-yellow-100/70 dark:hover:from-yellow-900/30 dark:hover:to-yellow-900/20',
+        border: 'border-l-4 border-yellow-500 shadow-sm shadow-yellow-500/20',
         icon: 'text-yellow-600 dark:text-yellow-400',
-        badge: 'bg-yellow-500',
+        iconBg: 'bg-yellow-100 dark:bg-yellow-900/30',
+        badge: 'bg-yellow-500 shadow-sm',
+        dot: 'bg-yellow-500',
     },
     BAJO: {
-        bg: 'bg-blue-50 dark:bg-blue-900/10 hover:bg-blue-100 dark:hover:bg-blue-900/20',
-        border: 'border-l-4 border-blue-500',
+        bg: 'bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-900/10 hover:from-blue-100 hover:to-blue-100/70 dark:hover:from-blue-900/30 dark:hover:to-blue-900/20',
+        border: 'border-l-4 border-blue-500 shadow-sm shadow-blue-500/20',
         icon: 'text-blue-600 dark:text-blue-400',
-        badge: 'bg-blue-500',
+        iconBg: 'bg-blue-100 dark:bg-blue-900/30',
+        badge: 'bg-blue-500 shadow-sm',
+        dot: 'bg-blue-500',
     },
 };
 
-/**
- * Función segura para formatear fechas
- */
 const formatTimeAgo = (dateString) => {
     try {
         if (!dateString) return 'Sin fecha';
-        
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return 'Fecha inválida';
-        
         return formatDistanceToNow(date, {
             addSuffix: true,
             locale: es,
         });
     } catch (error) {
-        console.error('Error formateando fecha:', error);
+        console.error(error);
         return 'Fecha inválida';
     }
 };
 
-/**
- * Componente NotificationItem
- * Representa un item individual de notificación en la lista
- * 
- * @param {Object} notification - Objeto de notificación
- * @param {Function} onClick - Callback al hacer clic en el item
- * @param {Function} onSelect - Callback al seleccionar checkbox
- * @param {boolean} selected - Si el item está seleccionado
- */
 const NotificationItem = ({
     notification,
     onClick,
@@ -84,30 +72,23 @@ const NotificationItem = ({
 }) => {
     const {
         id,
-        tipoAlerta,
+        type,
         nivelUrgencia,
-        mensaje,
-        fechaGeneracion,
-        leida,
+        message,
+        createdAt,
+        isRead,
         producto,
+        stockActual,
     } = notification;
 
-    // Obtener estilos según urgencia
     const styles = URGENCY_STYLES[nivelUrgencia] || URGENCY_STYLES.BAJO;
-
-    // Obtener ícono según tipo
-    const IconComponent = ALERT_ICONS[tipoAlerta] || Info;
-
-    // Formatear fecha relativa de forma segura
-    const timeAgo = formatTimeAgo(fechaGeneracion);
-
-    // Truncar mensaje si es muy largo
-    const truncatedMessage = mensaje && mensaje.length > 100 
-        ? `${mensaje.substring(0, 100)}...` 
-        : mensaje || 'Sin mensaje';
+    const IconComponent = ALERT_ICONS[type] || Info;
+    const timeAgo = formatTimeAgo(createdAt);
+    const truncatedMessage = message && message.length > 120
+        ? `${message.substring(0, 120)}...`
+        : message || 'Sin mensaje';
 
     const handleClick = (e) => {
-        // Evitar que el clic en checkbox active el onClick del item
         if (e.target.type !== 'checkbox' && !e.target.closest('input[type="checkbox"]')) {
             onClick(notification);
         }
@@ -123,13 +104,14 @@ const NotificationItem = ({
             onClick={handleClick}
             className={`
                 relative flex items-start gap-3 p-4 
-                cursor-pointer transition-all duration-200
+                cursor-pointer transition-all duration-300 ease-out
                 ${styles.bg} ${styles.border}
                 border-b border-gray-200 dark:border-dark-border
-                ${selected ? 'ring-2 ring-primary-500 ring-inset' : ''}
+                ${selected ? 'ring-2 ring-primary-500 ring-inset scale-[0.99]' : ''}
+                ${!isRead ? 'font-medium' : 'opacity-75'}
+                hover:scale-[0.99] active:scale-[0.98]
             `}
         >
-            {/* Checkbox de selección */}
             <div className="flex-shrink-0 pt-1" onClick={(e) => e.stopPropagation()}>
                 <Checkbox
                     checked={selected}
@@ -138,60 +120,63 @@ const NotificationItem = ({
                 />
             </div>
 
-            {/* Ícono de tipo de alerta */}
-            <div className={`flex-shrink-0 pt-1 ${styles.icon}`}>
-                <IconComponent className="w-5 h-5" />
+            <div className={`flex-shrink-0 p-2 rounded-lg ${styles.iconBg} transition-transform duration-300 ${!isRead ? 'scale-110' : ''}`}>
+                <IconComponent className={`w-5 h-5 ${styles.icon}`} />
             </div>
 
-            {/* Contenido principal */}
             <div className="flex-1 min-w-0">
-                {/* Header: Badge + Producto */}
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1.5">
                     <Badge
                         variant="custom"
-                        className={`${styles.badge} text-white text-xs px-2 py-0.5`}
+                        className={`${styles.badge} text-white text-xs px-2.5 py-0.5 font-semibold uppercase tracking-wide`}
                     >
                         {nivelUrgencia}
                     </Badge>
-                    
+
                     {producto && producto.nombre && (
-                        <span className="text-xs font-medium text-gray-700 dark:text-dark-text truncate">
+                        <span className="text-xs font-semibold text-gray-800 dark:text-dark-text truncate bg-white/50 dark:bg-dark-bg/50 px-2 py-0.5 rounded-md">
                             {producto.nombre}
                         </span>
                     )}
                 </div>
 
-                {/* Mensaje */}
                 <p className={`
-                    text-sm mb-1
-                    ${leida 
-                        ? 'text-gray-600 dark:text-dark-muted' 
-                        : 'text-gray-900 dark:text-dark-text font-medium'
+                    text-sm mb-2 leading-relaxed
+                    ${isRead
+                        ? 'text-gray-600 dark:text-dark-muted'
+                        : 'text-gray-900 dark:text-dark-text font-semibold'
                     }
                 `}>
                     {truncatedMessage}
                 </p>
 
-                {/* Footer: Fecha + Stock info (si aplica) */}
-                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-muted">
-                    <span>{timeAgo}</span>
-                    
-                    {producto && tipoAlerta !== 'STOCK_EXCESIVO' && producto.stockActual !== undefined && (
+                <div className="flex items-center gap-3 text-xs">
+                    <div className="flex items-center gap-1.5 text-gray-500 dark:text-dark-muted">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{timeAgo}</span>
+                    </div>
+
+                    {producto && type !== 'STOCK_EXCESIVO' && (
                         <>
-                            <span>•</span>
-                            <span>
-                                Stock: {producto.stockActual}
-                                {producto.stockMinimo && `/${producto.stockMinimo}`}
-                            </span>
+                            <span className="text-gray-300 dark:text-dark-border">|</span>
+                            <div className={`flex items-center gap-1.5 font-medium ${(stockActual !== undefined ? stockActual : producto.stockActual) <= producto.stockMinimo
+                                    ? 'text-red-600 dark:text-red-400'
+                                    : 'text-green-600 dark:text-green-400'
+                                }`}>
+                                <Package className="w-3.5 h-3.5" />
+                                <span>
+                                    {stockActual !== undefined ? stockActual : producto.stockActual}
+                                    {producto.stockMinimo && ` / ${producto.stockMinimo}`}
+                                </span>
+                            </div>
                         </>
                     )}
                 </div>
             </div>
 
-            {/* Indicador de no leída */}
-            {!leida && (
+            {!isRead && (
                 <div className="flex-shrink-0 pt-2">
-                    <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
+                    <div className={`w-2.5 h-2.5 rounded-full ${styles.dot} animate-pulse shadow-lg`} />
                 </div>
             )}
         </div>
