@@ -38,8 +38,8 @@ const MENU_ITEMS = [
     },
     {
         icon: Package,
-        label: 'Consultar Stock',
-        path: '/vendedor/stock',
+        label: 'Productos',
+        path: '/vendedor/productos',
     },
     {
         icon: BarChart3,

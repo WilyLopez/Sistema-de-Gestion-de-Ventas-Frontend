@@ -59,6 +59,10 @@ import ReportsDashboard from '@pages/admin/Reports/ReportDashboard';
 import SellerDashboard from '@pages/seller/Dashboard';
 import NewSale from '@pages/seller/NewSale';
 import MySales from '@pages/seller/MySales';
+import ClientList from '@pages/seller/Clients/ClientList';
+import ProductSearch from '@pages/seller/Products/ProductSearch';
+import SellerReturnProcess from '@pages/seller/Returns/ReturnProcess';
+import DailyReport from '@pages/seller/Reports/DailyReport';
 
 const AppRoutes = () => {
     return (
@@ -119,6 +123,10 @@ const AppRoutes = () => {
                 <Route path="dashboard" element={<SellerDashboard />} />
                 <Route path="nueva-venta" element={<NewSale />} />
                 <Route path="mis-ventas" element={<MySales />} />
+                <Route path="clientes" element={<ClientList />} />
+                <Route path="productos" element={<ProductSearch />} />
+                <Route path="devoluciones" element={<SellerReturnProcess />} />
+                <Route path="reporte-diario" element={<DailyReport />} />
             </Route>
 
             <Route path="/" element={<Navigate to="/login" replace />} />

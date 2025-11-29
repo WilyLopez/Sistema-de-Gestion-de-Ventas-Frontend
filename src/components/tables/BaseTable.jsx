@@ -29,6 +29,7 @@ const BaseTable = ({
     searchable = true,
     searchPlaceholder = 'Buscar...',
     emptyMessage = 'No hay datos para mostrar',
+    refreshKey, // <-- Aceptar la nueva prop
 }) => {
     const [data, setData] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +49,7 @@ const BaseTable = ({
         setError(null);
         try {
             const sort = sortField ? `${sortField},${sortDirection}` : null;
-            const response = await fetchData(currentPage, pageSize, sort, searchQuery); // <-- agrega aquí
+            const response = await fetchData(currentPage, pageSize, sort, searchQuery);
             setData(response.content || []);
             setTotalElements(response.totalElements || 0);
             setTotalPages(response.totalPages || 0);
@@ -58,13 +59,11 @@ const BaseTable = ({
         } finally {
             setIsLoading(false);
         }
-    }, [currentPage, pageSize, sortField, sortDirection, fetchData, searchQuery]); 
-
-
+    }, [currentPage, pageSize, sortField, sortDirection, fetchData, searchQuery]);
 
     useEffect(() => {
         loadData();
-    }, [loadData, searchQuery]);
+    }, [loadData, searchQuery, refreshKey]); // <-- Añadir refreshKey a las dependencias
 
 
     const handlePageChange = (newPage) => {
