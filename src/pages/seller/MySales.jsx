@@ -1,5 +1,5 @@
 // src/pages/seller/MySales.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     FileText,
     Eye,
@@ -26,8 +26,9 @@ import Badge from '@components/ui/Badge';
 import BaseTable from '@components/tables/BaseTable';
 import { useAuth } from '@context/AuthContext';
 import VentaService from '@services/VentaService';
+import MetodoPagoService from '@services/MetodoPagoService'; // Importar el nuevo servicio
 import { formatCurrency, formatDateTime, formatDate } from '@utils/formatters';
-import { SALE_STATUS, PAYMENT_METHODS } from '@utils/constants';
+import { SALE_STATUS } from '@utils/constants';
 
 const MySales = () => {
     const { user } = useAuth();
@@ -43,7 +44,7 @@ const MySales = () => {
     const [showFilters, setShowFilters] = useState(false);
 
     // Estados de datos
-    const [sales, setSales] = useState([]);
+    const [metodosPago, setMetodosPago] = useState([]); // Estado para métodos de pago
     const [isLoading, setIsLoading] = useState(false);
     const [selectedSale, setSelectedSale] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
@@ -53,91 +54,83 @@ const MySales = () => {
 
     // Estados de estadísticas
     const [stats, setStats] = useState({
-        totalVentas: 0,
-        totalMonto: 0,
-        ventasHoy: 0,
-        montoHoy: 0,
+        total: 0,
+        cantidad: 0,
     });
 
     // ==================== EFECTOS ====================
 
+    // Cargar métodos de pago al montar el componente
     useEffect(() => {
-        loadStatistics();
+        const loadMetodosPago = async () => {
+            try {
+                const response = await MetodoPagoService.getAll();
+                setMetodosPago(response || []);
+            } catch (error) {
+                console.error("Error cargando métodos de pago:", error);
+            }
+        };
+        loadMetodosPago();
     }, []);
+
+    // Cargar estadísticas cuando cambian los filtros
+    useEffect(() => {
+        const loadStatistics = async () => {
+            if (!user?.id) return;
+
+            try {
+                const response = await VentaService.getSellerStatistics(
+                    user.id,
+                    filters.fechaInicio,
+                    filters.fechaFin
+                );
+
+                if (response && typeof response === 'object') {
+                    setStats({
+                        total: response.totalVendido || 0,
+                        cantidad: response.cantidadVentas || 0,
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+                setStats({ total: 0, cantidad: 0 });
+            }
+        };
+
+        loadStatistics();
+    }, [user, filters]);
 
     // ==================== CARGA DE DATOS ====================
 
-    const fetchSales = async (page = 0, size = 20, sort = 'fechaCreacion,desc', searchQuery = '') => {
+    const fetchSales = useCallback(async (page = 0, size = 20, sort = 'fechaCreacion,desc') => {
+        if (!user?.id) {
+            return { content: [], totalPages: 0, totalElements: 0 };
+        }
         setIsLoading(true);
         try {
-            // Construir filtros para el backend
+            // Construir filtros para el backend, ajustando las fechas
             const searchFilters = {
-                idUsuario: user.id, // Solo mis ventas
+                idUsuario: user.id,
                 codigoVenta: filters.codigoVenta || undefined,
                 estado: filters.estado || undefined,
                 idMetodoPago: filters.metodoPago || undefined,
-                fechaInicio: filters.fechaInicio || undefined,
-                fechaFin: filters.fechaFin || undefined,
+                fechaDesde: filters.fechaInicio
+                    ? new Date(filters.fechaInicio).toISOString()
+                    : undefined,
+                fechaHasta: filters.fechaFin
+                    ? new Date(new Date(filters.fechaFin).setHours(23, 59, 59, 999)).toISOString()
+                    : undefined,
             };
 
             const response = await VentaService.buscar(searchFilters, page, size);
             return response;
         } catch (error) {
             console.error('Error cargando ventas:', error);
-            throw error;
+            return { content: [], totalPages: 0, totalElements: 0 };
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const loadStatistics = async () => {
-        try {
-            const today = new Date();
-            const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-            const endOfDay = new Date(today.setHours(23, 59, 59, 999));
-
-            const response = await VentaService.getStatistics(
-                startOfDay.toISOString(),
-                endOfDay.toISOString()
-            );
-
-            console.log('Respuesta de estadísticas:', response);
-
-            if (Array.isArray(response)) {
-                const myStats = response.filter(stat => stat.idUsuario === user.id)[0] || {
-                    totalVentas: 0,
-                    totalMonto: 0,
-                };
-                setStats({
-                    ...stats,
-                    ventasHoy: myStats.totalVentas,
-                    montoHoy: myStats.totalMonto,
-                });
-            } else if (response && typeof response === 'object') {
-                setStats({
-                    totalVentas: response.totalVentas || 0,
-                    totalMonto: response.totalMonto || 0,
-                    ventasHoy: response.ventasHoy || response.totalVentas || 0,
-                    montoHoy: response.montoHoy || response.totalMonto || 0,
-                });
-            } else {
-                setStats({
-                    totalVentas: 0,
-                    totalMonto: 0,
-                    ventasHoy: 0,
-                    montoHoy: 0,
-                });
-            }
-        } catch (error) {
-            console.error('Error cargando estadísticas:', error);
-            setStats({
-                totalVentas: 0,
-                totalMonto: 0,
-                ventasHoy: 0,
-                montoHoy: 0,
-            });
-        }
-    };
+    }, [user, filters]);
 
     // ==================== MANEJO DE FILTROS ====================
 
@@ -166,7 +159,7 @@ const MySales = () => {
 
     const viewSaleDetail = async (sale) => {
         try {
-            const fullSale = await VentaService.getById(sale.id);
+            const fullSale = await VentaService.getById(sale.idVenta);
             setSelectedSale(fullSale);
             setShowDetailModal(true);
         } catch (error) {
@@ -177,7 +170,7 @@ const MySales = () => {
 
     const openCancelModal = async (sale) => {
         try {
-            const canCancel = await VentaService.puedeAnularse(sale.id);
+            const canCancel = await VentaService.puedeAnularse(sale.idVenta);
             if (!canCancel) {
                 alert('Esta venta no puede ser anulada (han pasado más de 24 horas)');
                 return;
@@ -198,11 +191,11 @@ const MySales = () => {
 
         try {
             setIsCancelling(true);
-            await VentaService.anular(selectedSale.id, cancelReason);
+            await VentaService.anular(selectedSale.idVenta, cancelReason);
             alert('Venta anulada exitosamente');
             setShowCancelModal(false);
             setCancelReason('');
-            // Recargar datos
+            // Forzar recarga de la tabla
             window.location.reload();
         } catch (error) {
             console.error('Error anulando venta:', error);
@@ -213,14 +206,12 @@ const MySales = () => {
     };
 
     const printReceipt = (sale) => {
-        // Aquí iría la lógica de impresión
         alert(`Imprimir comprobante de venta ${sale.codigoVenta}`);
     };
 
     const exportSales = async () => {
         try {
             alert('Exportando ventas a Excel...');
-            // Aquí iría la lógica de exportación
         } catch (error) {
             console.error('Error exportando ventas:', error);
             alert('Error al exportar ventas');
@@ -259,16 +250,13 @@ const MySales = () => {
             ),
         },
         {
-            key: 'cliente',
+            key: 'nombreCliente',
             label: 'Cliente',
             sortable: false,
-            render: (value, row) => (
+            render: (value) => (
                 <div className="text-sm">
                     <p className="font-medium text-gray-900 dark:text-dark-text">
-                        {row.nombreCliente || 'Cliente General'}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-dark-muted">
-                        {row.documentoCliente || '-'}
+                        {value || 'Cliente General'}
                     </p>
                 </div>
             ),
@@ -286,7 +274,7 @@ const MySales = () => {
                     'PLIN': { icon: DollarSign, color: 'warning' },
                     'TRANSFERENCIA': { icon: CreditCard, color: 'info' },
                 };
-                const method = methodMap[value] || { icon: DollarSign, color: 'default' };
+                const method = methodMap[value.toUpperCase()] || { icon: DollarSign, color: 'default' };
                 const Icon = method.icon;
 
                 return (
@@ -346,6 +334,7 @@ const MySales = () => {
             label: 'Anular',
             onClick: openCancelModal,
             variant: 'danger',
+            shouldShow: (item) => item.estado === 'PAGADO',
         },
     ];
 
@@ -354,15 +343,15 @@ const MySales = () => {
     return (
         <div className="space-y-6">
             {/* Header con estadísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white dark:bg-dark-card rounded-lg shadow-md p-4">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-600 dark:text-dark-muted">
-                                Ventas Hoy
+                                Ventas en Periodo
                             </p>
                             <p className="text-2xl font-bold text-gray-900 dark:text-dark-text">
-                                {stats.ventasHoy}
+                                {stats.cantidad}
                             </p>
                         </div>
                         <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/20 rounded-lg flex items-center justify-center">
@@ -375,46 +364,14 @@ const MySales = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-600 dark:text-dark-muted">
-                                Total Hoy
+                                Monto en Periodo
                             </p>
                             <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                                {formatCurrency(stats.montoHoy)}
+                                {formatCurrency(stats.total)}
                             </p>
                         </div>
                         <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
                             <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-dark-card rounded-lg shadow-md p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-600 dark:text-dark-muted">
-                                Total Ventas
-                            </p>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-dark-text">
-                                {stats.totalVentas}
-                            </p>
-                        </div>
-                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                            <CheckCircle className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-dark-card rounded-lg shadow-md p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-600 dark:text-dark-muted">
-                                Monto Total
-                            </p>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-dark-text">
-                                {formatCurrency(stats.totalMonto)}
-                            </p>
-                        </div>
-                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                            <DollarSign className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                         </div>
                     </div>
                 </div>
@@ -463,7 +420,7 @@ const MySales = () => {
                             onChange={(value) => handleFilterChange('estado', value)}
                             options={[
                                 { value: '', label: 'Todos los estados' },
-                                ...Object.entries(SALE_STATUS).map(([, value]) => ({
+                                ...Object.values(SALE_STATUS).map((value) => ({
                                     value,
                                     label: value,
                                 })),
@@ -476,9 +433,9 @@ const MySales = () => {
                             onChange={(value) => handleFilterChange('metodoPago', value)}
                             options={[
                                 { value: '', label: 'Todos los métodos' },
-                                ...Object.entries(PAYMENT_METHODS).map(([, value]) => ({
-                                    value,
-                                    label: value.replace(/_/g, ' '),
+                                ...metodosPago.map((metodo) => ({
+                                    value: metodo.idMetodoPago,
+                                    label: metodo.nombre,
                                 })),
                             ]}
                         />
@@ -526,6 +483,7 @@ const MySales = () => {
                 actions={actions}
                 searchable={false}
                 emptyMessage="No se encontraron ventas"
+                refreshKey={filters}
             />
 
             {/* MODAL: Detalle de Venta */}
@@ -558,16 +516,13 @@ const MySales = () => {
                                 <p className="font-medium text-gray-900 dark:text-dark-text">
                                     {selectedSale.nombreCliente}
                                 </p>
-                                <p className="text-sm text-gray-500 dark:text-dark-muted">
-                                    {selectedSale.documentoCliente}
-                                </p>
                             </div>
                             <div>
                                 <p className="text-sm text-gray-600 dark:text-dark-muted">
                                     Método de Pago
                                 </p>
                                 <p className="font-medium text-gray-900 dark:text-dark-text">
-                                    {selectedSale.metodoPago?.replace(/_/g, ' ')}
+                                    {selectedSale.nombreMetodoPago}
                                 </p>
                             </div>
                         </div>
@@ -612,16 +567,6 @@ const MySales = () => {
                                     {formatCurrency(selectedSale.subtotal)}
                                 </span>
                             </div>
-                            {selectedSale.descuentoTotal > 0 && (
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-dark-muted">
-                                        Descuento:
-                                    </span>
-                                    <span className="font-medium text-red-600 dark:text-red-400">
-                                        -{formatCurrency(selectedSale.descuentoTotal)}
-                                    </span>
-                                </div>
-                            )}
                             <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200 dark:border-dark-border">
                                 <span className="text-gray-900 dark:text-dark-text">TOTAL:</span>
                                 <span className="text-primary-600 dark:text-primary-400">
