@@ -83,12 +83,13 @@ const ENDPOINTS = {
     VENTAS: {
         BASE: "/api/ventas",
         BY_ID: (id) => `/api/ventas/${id}`,
-        BY_CODIGO: (codigo) => `/api/ventas/codigo/${codigo}`,
+        BY_CODIGO: (codigoVenta) => `/api/ventas/codigo/${codigoVenta}`,
         BUSCAR: "/api/ventas/buscar",
         ANULAR: (id) => `/api/ventas/${id}/anular`,
         PUEDE_ANULARSE: (id) => `/api/ventas/${id}/puede-anularse`,
         BY_PERIODO: "/api/ventas/periodo",
         ESTADISTICAS: "/api/ventas/estadisticas",
+        VENDEDOR_ESTADISTICAS: "/api/ventas/vendedor/estadisticas",
     },
     DEVOLUCIONES: {
         BASE: "/api/devoluciones",
@@ -155,6 +156,7 @@ const ENDPOINTS = {
         TOP_PRODUCTOS: "/api/reportes/top-productos",
         TEST: "/api/reportes/test",
         DISPONIBLES: "/api/reportes/disponibles",
+        VENDEDOR_DIARIO: "/api/reportes/vendedor/diario",
     },
 };
 
