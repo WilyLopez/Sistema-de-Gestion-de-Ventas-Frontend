@@ -129,7 +129,7 @@ export const AuthProvider = ({ children }) => {
             console.error("Error en login:", error);
             return {
                 success: false,
-                message: error.message || error.parsedError?.message || "Error al iniciar sesión",
+                error: error.parsedError || { message: "Ocurrió un error inesperado al intentar iniciar sesión." }
             };
         } finally {
             setIsLoading(false);

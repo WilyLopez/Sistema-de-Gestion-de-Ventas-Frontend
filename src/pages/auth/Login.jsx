@@ -97,21 +97,13 @@ const Login = () => {
         setIsLoading(true);
         setGeneralError('');
 
-        try {
-            const result = await login(formData.username, formData.password);
-            
-            if (result.success) {
-                console.log('Login exitoso, rol:', result.user?.rol);
-                // La redirección se manejará en el useEffect con el user actualizado
-            } else {
-                setGeneralError(result.message || 'Usuario o contraseña incorrectos');
-            }
-        } catch (error) {
-            console.error('Error en login:', error);
-            setGeneralError('Error de conexión. Intenta nuevamente.');
-        } finally {
+        const result = await login(formData.username, formData.password);
+        
+        if (!result.success) {
+            setGeneralError(result.error?.message || 'Usuario o contraseña incorrectos. Por favor, verifique sus credenciales.');
             setIsLoading(false);
         }
+        // El éxito se maneja en el useEffect
     };
 
     // Manejar Enter en campos
