@@ -6,7 +6,7 @@ import ProveedorForm from '@components/forms/ProveedorForm';
 import Button from '@components/ui/Button';
 import Modal from '@components/ui/Modal';
 import Alert from '@components/alerts/Alert';
-import proveedorService from '../../../services/ProveedorService';
+import proveedorService from '@services/ProveedorService.js';
 import { MESSAGES } from '@utils/constants';
 
 /**
