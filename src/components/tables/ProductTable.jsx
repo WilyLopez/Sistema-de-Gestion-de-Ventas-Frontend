@@ -53,10 +53,10 @@ const ProductTable = ({ onDelete }) => {
             ),
         },
         {
-            key: 'categoria',
+            key: 'nombreCategoria',
             label: 'Categoría',
             sortable: true,
-            render: (value) => value?.nombre || '-',
+            render: (value, row) => row.nombreCategoria || '-',
         },
         {
             key: 'talla',
