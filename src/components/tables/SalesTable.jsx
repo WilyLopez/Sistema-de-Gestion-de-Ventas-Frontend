@@ -23,7 +23,7 @@ const SalesTable = ({ onCancel, userRole }) => {
     // Configuración de columnas
     const columns = [
         {
-            key: 'codigo',
+            key: 'codigoVenta',
             label: 'Código',
             sortable: true,
             render: (value) => (
@@ -33,7 +33,7 @@ const SalesTable = ({ onCancel, userRole }) => {
             ),
         },
         {
-            key: 'fecha',
+            key: 'fechaCreacion',
             label: 'Fecha',
             sortable: true,
             render: (value) => {
@@ -59,7 +59,7 @@ const SalesTable = ({ onCancel, userRole }) => {
             },
         },
         {
-            key: 'cliente',
+            key: 'nombreCliente',
             label: 'Cliente',
             sortable: false,
             render: (value) => {
@@ -67,20 +67,17 @@ const SalesTable = ({ onCancel, userRole }) => {
                 return (
                     <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-dark-text">
-                            {value.nombre} {value.apellido}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-dark-muted">
-                            {value.tipoDocumento}: {value.numeroDocumento}
+                            {value}
                         </p>
                     </div>
                 );
             },
         },
         {
-            key: 'usuario',
+            key: 'nombreUsuario',
             label: 'Vendedor',
             sortable: false,
-            render: (value) => value?.nombre || '-',
+            render: (value) => value || '-',
         },
         {
             key: 'metodoPago',

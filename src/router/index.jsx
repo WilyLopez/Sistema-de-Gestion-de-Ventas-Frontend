@@ -51,6 +51,10 @@ import InventoryView from '@pages/admin/Inventory/InventoryView';
 import MovementHistory from '@pages/admin/Inventory/MovementHistory';
 import StockAlerts from '@pages/admin/Inventory/StockAlerts';
 
+// Admin - Sales
+import SaleList from '@pages/admin/Sales/SaleList';
+import SaleDetail from '@pages/admin/Sales/SaleDetail';
+
 // Admin - Returns
 import ReturnList from '@pages/admin/Returns/ReturnList';
 import ReturnProcess from '@pages/admin/Returns/ReturnProcess';
@@ -112,6 +116,9 @@ const AppRoutes = () => {
                 <Route path="inventario" element={<InventoryView />} />
                 <Route path="inventario/historial" element={<MovementHistory />} />
                 <Route path="inventario/alertas" element={<StockAlerts />} />
+
+                <Route path="ventas" element={<SaleList />} />
+                <Route path="ventas/:id" element={<SaleDetail />} />
 
                 <Route path="devoluciones" element={<ReturnList />} />
                 <Route path="devoluciones/:id/procesar" element={<ReturnProcess />} />
