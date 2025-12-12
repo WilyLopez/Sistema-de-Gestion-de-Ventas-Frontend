@@ -23,7 +23,14 @@ const categoriaService = {
     },
 
     getAll: async (page = 0, size = 20) => {
-        const response = await paginated(ENDPOINTS.CATEGORIAS.BASE, page, size);
+        const response = await paginated(ENDPOINTS.CATEGORIAS.CON_CANTIDAD, page, size);
+        return response;
+    },
+
+    search: async (nombre, page = 0, size = 20) => {
+        const response = await get(ENDPOINTS.CATEGORIAS.BUSCAR_CON_CANTIDAD, {
+            params: { nombre, page, size }
+        });
         return response;
     },
 

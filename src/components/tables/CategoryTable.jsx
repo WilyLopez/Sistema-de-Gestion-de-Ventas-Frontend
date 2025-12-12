@@ -92,8 +92,12 @@ const CategoryTable = ({ onEdit, onDelete, refreshTrigger }) => {
     ];
 
     // Función para obtener datos con paginación
-    const fetchData = async (page, size) => {
+    const fetchData = async (page, size, searchTerm = '') => {
         try {
+            if (searchTerm) {
+                const response = await categoriaService.search(searchTerm, page, size);
+                return response;
+            }
             const response = await categoriaService.getAll(page, size);
             return response;
         } catch (error) {
