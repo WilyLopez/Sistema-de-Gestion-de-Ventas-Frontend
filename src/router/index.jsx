@@ -16,6 +16,9 @@ import ForgotPassword from '@pages/auth/ForgotPassword';
 import Unauthorized from '@pages/common/Unauthorized';
 import NotFound from '@pages/common/NotFound';
 import UserProfile from '@pages/common/UserProfile';
+import ChangePasswordPage from '@pages/common/ChangePasswordPage';
+import PreferencesPage from '@pages/common/PreferencesPage';
+import HelpPage from '@pages/common/HelpPage';
 
 // Admin - Dashboard
 import AdminDashboard from '@pages/admin/Dashboard';
@@ -70,7 +73,12 @@ const AppRoutes = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/recuperar-contrasena" element={<ForgotPassword />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
+
+            {/* Rutas comunes de usuario */}
             <Route path="/perfil" element={<UserProfile />} />
+            <Route path="/change-password" element={<ChangePasswordPage />} />
+            <Route path="/preferences" element={<PreferencesPage />} />
+            <Route path="/help" element={<HelpPage />} />
 
             <Route
                 path="/admin/*"

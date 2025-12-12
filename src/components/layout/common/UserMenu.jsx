@@ -7,19 +7,12 @@ import { useNotifications } from '@hooks/useNotifications';
 import Badge from '@components/ui/Badge';
 import React from 'react';
 
-/**
- * Mapeo de roles a colores de badge
- */
 const ROLE_COLORS = {
-    ADMINISTRATOR: 'bg-red-500',
-    SELLER: 'bg-blue-500',
-    EMPLOYEE: 'bg-green-500',
+    ADMINISTRADOR: 'bg-red-500',
+    VENDEDOR: 'bg-blue-500',
+    EMPLEADO: 'bg-green-500',
 };
 
-/**
- * Componente UserMenu
- * Dropdown con perfil y opciones de usuario
- */
 const UserMenu = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
@@ -28,7 +21,6 @@ const UserMenu = () => {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef(null);
 
-    // Cerrar al hacer clic fuera
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -43,7 +35,6 @@ const UserMenu = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isOpen]);
 
-    // Cerrar con tecla Escape
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === 'Escape' && isOpen) {
@@ -58,18 +49,17 @@ const UserMenu = () => {
     const handleLogout = async () => {
         try {
             await logout();
-            addNotification({ type: 'success', message: 'Logged out successfully' });
+            addNotification({ type: 'success', message: 'Sesión cerrada exitosamente' });
             navigate('/login');
         } catch (error) {
-            console.error('Error during logout:', error);
-            addNotification({ type: 'error', message: 'Failed to log out. Please try again.' });
+            addNotification({ type: 'error', message: 'Error al cerrar sesión. Intente de nuevo.' });
         }
     };
 
     const menuItems = [
         {
             icon: User,
-            label: 'View Profile',
+            label: 'Ver Perfil',
             onClick: () => {
                 navigate('/perfil');
                 setIsOpen(false);
@@ -77,7 +67,7 @@ const UserMenu = () => {
         },
         {
             icon: Key,
-            label: 'Change Password',
+            label: 'Cambiar Contraseña',
             onClick: () => {
                 navigate('/change-password');
                 setIsOpen(false);
@@ -85,7 +75,7 @@ const UserMenu = () => {
         },
         {
             icon: Settings,
-            label: 'Preferences',
+            label: 'Preferencias',
             onClick: () => {
                 navigate('/preferences');
                 setIsOpen(false);
@@ -96,7 +86,7 @@ const UserMenu = () => {
         },
         {
             icon: theme === 'dark' ? Sun : Moon,
-            label: theme === 'dark' ? 'Light Mode' : 'Dark Mode',
+            label: theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro',
             onClick: () => {
                 toggleTheme();
             },
@@ -108,7 +98,7 @@ const UserMenu = () => {
         },
         {
             icon: HelpCircle,
-            label: 'Help',
+            label: 'Ayuda',
             onClick: () => {
                 navigate('/help');
                 setIsOpen(false);
@@ -119,7 +109,7 @@ const UserMenu = () => {
         },
         {
             icon: LogOut,
-            label: 'Logout',
+            label: 'Cerrar Sesión',
             onClick: handleLogout,
             variant: 'danger',
         },
@@ -129,54 +119,48 @@ const UserMenu = () => {
 
     return (
         <div ref={menuRef} className="relative">
-            {/* Botón de usuario */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-hover transition-colors"
                 aria-expanded={isOpen}
                 aria-haspopup="true"
             >
-                {/* Avatar */}
                 <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-semibold">
-                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                    {user.nombre?.charAt(0).toUpperCase() || 'U'}
                 </div>
 
-                {/* Información de usuario (oculta en móvil) */}
                 <div className="hidden sm:flex flex-col items-start">
                     <span className="text-sm font-medium text-gray-900 dark:text-dark-text">
-                        {user.name}
+                        {user.nombre}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-dark-muted">
-                        {user.role}
+                        {user.rol}
                     </span>
                 </div>
 
-                {/* Chevron */}
                 <ChevronDown className={`
                     w-4 h-4 text-gray-500 dark:text-dark-muted transition-transform duration-200
                     ${isOpen ? 'rotate-180' : ''}
                 `} />
             </button>
 
-            {/* Dropdown */}
             {isOpen && (
                 <div className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-lg z-50 animate-fade-in">
-                    {/* Header del dropdown */}
                     <div className="px-4 py-3 border-b border-gray-200 dark:border-dark-border">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white text-base font-semibold">
-                                {user.name?.charAt(0).toUpperCase() || 'U'}
+                                {user.nombre?.charAt(0).toUpperCase() || 'U'}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold text-gray-900 dark:text-dark-text truncate">
-                                    {user.name}
+                                    {user.nombre}
                                 </p>
                                 <div className="flex items-center gap-2 mt-1">
                                     <Badge
                                         variant="custom"
-                                        className={`${ROLE_COLORS[user.role] || 'bg-gray-500'} text-white text-xs px-2 py-0.5`}
+                                        className={`${ROLE_COLORS[user.rol] || 'bg-gray-500'} text-white text-xs px-2 py-0.5`}
                                     >
-                                        {user.role}
+                                        {user.rol}
                                     </Badge>
                                 </div>
                             </div>
@@ -188,7 +172,6 @@ const UserMenu = () => {
                         )}
                     </div>
 
-                    {/* Opciones del menú */}
                     <div className="py-2">
                         {menuItems.map((item, index) => {
                             if (item.type === 'divider') {

@@ -10,7 +10,7 @@ import Alert from '@components/alerts/Alert';
 import usuarioService from '@services/UsuarioService';
 import { useAuth } from '@hooks/useAuth';
 import { formatDate } from '@utils/formatters';
-import { validateEmail, validatePhone, validatePassword } from '@utils/validators';
+import { validateEmail, validatePhone } from '@utils/validators';
 import { MESSAGES, ROLES } from '@utils/constants';
 
 /**
@@ -18,7 +18,7 @@ import { MESSAGES, ROLES } from '@utils/constants';
  * Muestra y permite editar la información personal del usuario autenticado
  */
 const UserProfile = () => {
-    const { user: authUser, updateUser } = useAuth();
+    const { updateUser } = useAuth();
 
     // Estados de datos
     const [profile, setProfile] = useState(null);
@@ -35,18 +35,8 @@ const UserProfile = () => {
     });
     const [editErrors, setEditErrors] = useState({});
 
-    // Estados de cambio de contraseña
-    const [showPasswordModal, setShowPasswordModal] = useState(false);
-    const [passwordData, setPasswordData] = useState({
-        contrasenaActual: '',
-        contrasenaNueva: '',
-        confirmarContrasena: '',
-    });
-    const [passwordErrors, setPasswordErrors] = useState({});
-
     // Estados de carga
     const [isSaving, setIsSaving] = useState(false);
-    const [isChangingPassword, setIsChangingPassword] = useState(false);
 
     // Estados de mensajes
     const [successMessage, setSuccessMessage] = useState('');
@@ -160,87 +150,6 @@ const UserProfile = () => {
         setIsEditing(false);
     };
 
-    // ===== CAMBIO DE CONTRASEÑA =====
-    const handlePasswordChange = (e) => {
-        const { name, value } = e.target;
-        setPasswordData(prev => ({
-            ...prev,
-            [name]: value,
-        }));
-
-        // Limpiar error del campo
-        if (passwordErrors[name]) {
-            setPasswordErrors(prev => ({
-                ...prev,
-                [name]: '',
-            }));
-        }
-    };
-
-    const validatePasswordForm = () => {
-        const errors = {};
-
-        // Contraseña actual
-        if (!passwordData.contrasenaActual) {
-            errors.contrasenaActual = 'La contraseña actual es requerida';
-        }
-
-        // Nueva contraseña
-        if (!passwordData.contrasenaNueva) {
-            errors.contrasenaNueva = 'La nueva contraseña es requerida';
-        } else if (!validatePassword(passwordData.contrasenaNueva)) {
-            errors.contrasenaNueva = 'La contraseña debe tener al menos 6 caracteres';
-        }
-
-        // Confirmar contraseña
-        if (!passwordData.confirmarContrasena) {
-            errors.confirmarContrasena = 'Debes confirmar la contraseña';
-        } else if (passwordData.contrasenaNueva !== passwordData.confirmarContrasena) {
-            errors.confirmarContrasena = 'Las contraseñas no coinciden';
-        }
-
-        setPasswordErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
-
-    const handleChangePassword = async () => {
-        if (!validatePasswordForm()) return;
-
-        setIsChangingPassword(true);
-        setErrorMessage('');
-
-        try {
-            await usuarioService.cambiarContrasena(
-                profile.idUsuario,
-                passwordData.contrasenaActual,
-                passwordData.contrasenaNueva,
-                passwordData.confirmarContrasena
-            );
-
-            setShowPasswordModal(false);
-            setPasswordData({
-                contrasenaActual: '',
-                contrasenaNueva: '',
-                confirmarContrasena: '',
-            });
-            setPasswordErrors({});
-            setSuccessMessage('Contraseña cambiada exitosamente');
-
-            setTimeout(() => setSuccessMessage(''), 3000);
-        } catch (error) {
-            let errorMsg = MESSAGES.ERROR.GENERIC;
-
-            if (error.response?.status === 400) {
-                errorMsg = error.response.data.message || 'La contraseña actual es incorrecta';
-            }
-
-            setErrorMessage(errorMsg);
-            console.error('Error al cambiar contraseña:', error);
-        } finally {
-            setIsChangingPassword(false);
-        }
-    };
-
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
@@ -324,48 +233,40 @@ const UserProfile = () => {
                         </div>
 
                         {/* Botones de acción */}
-                        {!isEditing ? (
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="secondary"
-                                    size="md"
-                                    onClick={() => setIsEditing(true)}
-                                    leftIcon={<Edit className="w-4 h-4" />}
-                                >
-                                    Editar Perfil
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    size="md"
-                                    onClick={() => setShowPasswordModal(true)}
-                                    leftIcon={<Lock className="w-4 h-4" />}
-                                >
-                                    Cambiar Contraseña
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="secondary"
-                                    size="md"
-                                    onClick={handleCancelEdit}
-                                    disabled={isSaving}
-                                    leftIcon={<X className="w-4 h-4" />}
-                                >
-                                    Cancelar
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    size="md"
-                                    onClick={handleSaveProfile}
-                                    loading={isSaving}
-                                    disabled={isSaving}
-                                    leftIcon={<Save className="w-4 h-4" />}
-                                >
-                                    {isSaving ? 'Guardando...' : 'Guardar'}
-                                </Button>
-                            </div>
-                        )}
+                                                {!isEditing ? (
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            variant="secondary"
+                                                            size="md"
+                                                            onClick={() => setIsEditing(true)}
+                                                            leftIcon={<Edit className="w-4 h-4" />}
+                                                        >
+                                                            Editar Perfil
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            variant="secondary"
+                                                            size="md"
+                                                            onClick={handleCancelEdit}
+                                                            disabled={isSaving}
+                                                            leftIcon={<X className="w-4 h-4" />}
+                                                        >
+                                                            Cancelar
+                                                        </Button>
+                                                        <Button
+                                                            variant="primary"
+                                                            size="md"
+                                                            onClick={handleSaveProfile}
+                                                            loading={isSaving}
+                                                            disabled={isSaving}
+                                                            leftIcon={<Save className="w-4 h-4" />}
+                                                        >
+                                                            {isSaving ? 'Guardando...' : 'Guardar'}
+                                                        </Button>
+                                                    </div>
+                                                )}
                     </div>
                 </div>
 
@@ -498,80 +399,6 @@ const UserProfile = () => {
                 </div>
             </div>
 
-            {/* Modal de cambio de contraseña */}
-            <Modal
-                isOpen={showPasswordModal}
-                onClose={() => !isChangingPassword && setShowPasswordModal(false)}
-                title="Cambiar Contraseña"
-                size="md"
-            >
-                <div className="space-y-4">
-                    <Input
-                        label="Contraseña Actual"
-                        type="password"
-                        name="contrasenaActual"
-                        value={passwordData.contrasenaActual}
-                        onChange={handlePasswordChange}
-                        error={passwordErrors.contrasenaActual}
-                        required
-                        disabled={isChangingPassword}
-                        fullWidth
-                    />
-
-                    <Input
-                        label="Nueva Contraseña"
-                        type="password"
-                        name="contrasenaNueva"
-                        value={passwordData.contrasenaNueva}
-                        onChange={handlePasswordChange}
-                        error={passwordErrors.contrasenaNueva}
-                        required
-                        disabled={isChangingPassword}
-                        fullWidth
-                        helperText="Mínimo 6 caracteres"
-                    />
-
-                    <Input
-                        label="Confirmar Nueva Contraseña"
-                        type="password"
-                        name="confirmarContrasena"
-                        value={passwordData.confirmarContrasena}
-                        onChange={handlePasswordChange}
-                        error={passwordErrors.confirmarContrasena}
-                        required
-                        disabled={isChangingPassword}
-                        fullWidth
-                    />
-
-                    <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-dark-border">
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                setShowPasswordModal(false);
-                                setPasswordData({
-                                    contrasenaActual: '',
-                                    contrasenaNueva: '',
-                                    confirmarContrasena: '',
-                                });
-                                setPasswordErrors({});
-                            }}
-                            disabled={isChangingPassword}
-                            className="flex-1"
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            variant="primary"
-                            onClick={handleChangePassword}
-                            loading={isChangingPassword}
-                            disabled={isChangingPassword}
-                            className="flex-1"
-                        >
-                            {isChangingPassword ? 'Cambiando...' : 'Cambiar Contraseña'}
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
         </div>
     );
 };
